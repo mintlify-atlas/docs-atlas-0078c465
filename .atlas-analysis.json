@@ -1,0 +1,107 @@
+{
+  "projectType": "saas",
+  "projectName": "APM Enterprise",
+  "projectDescription": "Enterprise management system for efficient project administration and KPI performance metrics tracking",
+  "theme": "linden",
+  "primaryColor": "#bb9d5a",
+  "lightColor": "#5c442c",
+  "darkColor": "#1d1811",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/dashboard",
+              "features/project-management",
+              "features/user-management",
+              "features/kpi-tracking"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/component-structure",
+              "architecture/custom-hooks",
+              "architecture/api-layer"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/setup",
+              "development/error-simulation",
+              "development/network-auditing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "HTTP Client",
+            "pages": [
+              "api/http-client",
+              "api/error-handling"
+            ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "api/use-fetch",
+              "api/use-form",
+              "api/use-dashboard",
+              "api/use-project-form"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "api/components/layout",
+              "api/components/cards",
+              "api/components/forms",
+              "api/components/modals"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Real-time dashboard with KPI metrics",
+    "Project management with status tracking",
+    "User management and authentication",
+    "Network error simulation and auditing",
+    "Atomic component architecture",
+    "Custom React hooks for data fetching"
+  ],
+  "publicApiSurface": [
+    "httpClient.get()",
+    "httpClient.post()",
+    "httpClient.put()",
+    "httpClient.patch()",
+    "httpClient.delete()",
+    "useFetch()",
+    "useForm()",
+    "useDashboard()",
+    "useProjectForm()",
+    "useUsers()",
+    "useToggle()",
+    "apiGetDashboard()",
+    "apiCreateProject()",
+    "apiToggleProjectStatus()",
+    "apiUpdateProject()"
+  ]
+}
