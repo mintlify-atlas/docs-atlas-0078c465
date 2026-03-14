@@ -1,0 +1,442 @@
+---
+title: 'useDashboard'
+description: 'Complete state management hook for the APM Enterprise dashboard with authentication, project filtering, and data management'
+---
+
+## Overview
+
+The `useDashboard` hook is a comprehensive state management solution for the APM Enterprise dashboard. It manages authentication state, dashboard data fetching, project filtering, and user interactions. This hook combines multiple concerns into a single cohesive API.
+
+## Function Signature
+
+```javascript
+function useDashboard()
+```
+
+<Note>
+  This hook takes no parameters. All state is managed internally.
+</Note>
+
+## Return Values
+
+### Authentication State
+
+<ResponseField name="token" type="string">
+  Current authentication token. Empty string when logged out, `"demo-token"` when logged in.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  Email input value for login form. Default: `"admin@demo.com"`
+</ResponseField>
+
+<ResponseField name="setEmail" type="function">
+  Update email input value.
+  
+  ```javascript
+  setEmail("user@example.com")
+  ```
+</ResponseField>
+
+<ResponseField name="pass" type="string">
+  Password input value for login form. Default: `"123456"`
+</ResponseField>
+
+<ResponseField name="setPass" type="function">
+  Update password input value.
+  
+  ```javascript
+  setPass("newpassword")
+  ```
+</ResponseField>
+
+<ResponseField name="onLogin" type="function">
+  Login handler function. Validates credentials and sets token.
+  
+  ```javascript
+  <form onSubmit={onLogin}>
+    {/* form fields */}
+  </form>
+  ```
+  
+  **Validation:**
+  - Email must contain `@`
+  - Password must be at least 3 characters
+</ResponseField>
+
+<ResponseField name="onLogout" type="function">
+  Logout handler. Clears token and dashboard data.
+  
+  ```javascript
+  <button onClick={onLogout}>Logout</button>
+  ```
+</ResponseField>
+
+### Dashboard Data
+
+<ResponseField name="data" type="object | null">
+  Dashboard data fetched from the API.
+  
+  ```javascript
+  {
+    me: { name: "Admin User" },
+    stats: { revenue: 150000, newUsers: 42, churn: 0.05 },
+    projects: [/* array of projects */]
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="setData" type="function">
+  Manually update dashboard data.
+  
+  ```javascript
+  setData((prev) => ({
+    ...prev,
+    projects: [...prev.projects, newProject]
+  }))
+  ```
+</ResponseField>
+
+<ResponseField name="loading" type="boolean">
+  Loading state for dashboard data fetch operation.
+</ResponseField>
+
+<ResponseField name="err" type="object | null">
+  Error object if data fetching failed.
+  
+  ```javascript
+  { message: "Network error", status: 500 }
+  ```
+</ResponseField>
+
+<ResponseField name="setErr" type="function">
+  Manually set error state.
+</ResponseField>
+
+<ResponseField name="load" type="function">
+  Manually trigger a dashboard data refresh.
+  
+  ```javascript
+  <button onClick={load}>Refresh</button>
+  ```
+</ResponseField>
+
+### Filtering & Selection
+
+<ResponseField name="q" type="string">
+  Search query for filtering projects by name.
+</ResponseField>
+
+<ResponseField name="setQ" type="function">
+  Update search query.
+  
+  ```javascript
+  <input value={q} onChange={(e) => setQ(e.target.value)} />
+  ```
+</ResponseField>
+
+<ResponseField name="statusFilter" type="string">
+  Current status filter. Values: `"all"`, `"active"`, or `"paused"`.
+</ResponseField>
+
+<ResponseField name="setStatusFilter" type="function">
+  Update status filter.
+  
+  ```javascript
+  <Select value={statusFilter} onChange={setStatusFilter} />
+  ```
+</ResponseField>
+
+<ResponseField name="selectedId" type="string | null">
+  ID of the currently selected project.
+</ResponseField>
+
+<ResponseField name="setSelectedId" type="function">
+  Set the selected project ID.
+  
+  ```javascript
+  <button onClick={() => setSelectedId(project.id)}>Select</button>
+  ```
+</ResponseField>
+
+### Computed Values
+
+<ResponseField name="filteredProjects" type="array">
+  Array of projects filtered by both status and search query. This is a memoized computed value.
+  
+  **Filtering logic:**
+  1. Filter by status (if not "all")
+  2. Filter by search query (case-insensitive name match)
+  
+  ```javascript
+  filteredProjects.map(project => (
+    <ProjectCard key={project.id} project={project} />
+  ))
+  ```
+</ResponseField>
+
+<ResponseField name="selected" type="object | null">
+  The full project object for the currently selected project ID. Returns `null` if no project is selected or if the ID doesn't match any project.
+  
+  ```javascript
+  {selected && (
+    <ProjectDetails project={selected} />
+  )}
+  ```
+</ResponseField>
+
+## Usage Examples
+
+### Basic Dashboard Page
+
+```javascript
+import { useDashboard } from "../hooks/useDashboard";
+import { StatCard } from "../components/StatCard";
+import { money } from "../utils/formatters";
+
+export default function DashboardPage() {
+  const dash = useDashboard();
+
+  // Show login form if not authenticated
+  if (!dash.token) {
+    return (
+      <form onSubmit={dash.onLogin}>
+        <input
+          type="email"
+          value={dash.email}
+          onChange={(e) => dash.setEmail(e.target.value)}
+          placeholder="Email"
+        />
+        <input
+          type="password"
+          value={dash.pass}
+          onChange={(e) => dash.setPass(e.target.value)}
+          placeholder="Password"
+        />
+        <button type="submit">Login</button>
+      </form>
+    );
+  }
+
+  // Show dashboard
+  return (
+    <div>
+      <button onClick={dash.onLogout}>Logout</button>
+      
+      {dash.loading && <p>Loading...</p>}
+      {dash.err && <p>Error: {dash.err.message}</p>}
+      
+      {dash.data && (
+        <div>
+          <h1>Welcome, {dash.data.me.name}</h1>
+          <StatCard
+            title="Revenue"
+            value={money(dash.data.stats.revenue)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Project Filtering
+
+```javascript
+function ProjectList() {
+  const dash = useDashboard();
+
+  return (
+    <div>
+      <input
+        placeholder="Search projects..."
+        value={dash.q}
+        onChange={(e) => dash.setQ(e.target.value)}
+      />
+      
+      <select
+        value={dash.statusFilter}
+        onChange={(e) => dash.setStatusFilter(e.target.value)}
+      >
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="paused">Paused</option>
+      </select>
+
+      {dash.filteredProjects.map((project) => (
+        <button
+          key={project.id}
+          onClick={() => dash.setSelectedId(project.id)}
+        >
+          {project.name}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+### Selected Project Details
+
+```javascript
+function ProjectDetails() {
+  const dash = useDashboard();
+
+  return (
+    <div>
+      {dash.selected ? (
+        <div>
+          <h2>{dash.selected.name}</h2>
+          <p>Owner: {dash.selected.owner}</p>
+          <p>Budget: {money(dash.selected.budget)}</p>
+          <p>Status: {dash.selected.status}</p>
+          <button onClick={() => dash.setSelectedId(null)}>
+            Close
+          </button>
+        </div>
+      ) : (
+        <p>Select a project to view details</p>
+      )}
+    </div>
+  );
+}
+```
+
+### Updating Projects
+
+```javascript
+function AddProjectButton({ newProject }) {
+  const dash = useDashboard();
+
+  const handleAdd = () => {
+    dash.setData((prev) => ({
+      ...prev,
+      projects: [newProject, ...(prev?.projects || [])]
+    }));
+    
+    // Select the newly added project
+    dash.setSelectedId(newProject.id);
+  };
+
+  return <button onClick={handleAdd}>Add Project</button>;
+}
+```
+
+### Refresh Data
+
+```javascript
+function RefreshButton() {
+  const dash = useDashboard();
+
+  const handleRefresh = () => {
+    dash.load();
+    dash.setSelectedId(null); // Clear selection on refresh
+  };
+
+  return (
+    <button onClick={handleRefresh} disabled={dash.loading}>
+      {dash.loading ? "Refreshing..." : "Refresh"}
+    </button>
+  );
+}
+```
+
+### Real-World Integration from DashboardPage.jsx
+
+```javascript
+import { useDashboard } from "../hooks/useDashboard";
+import { useProjectForm } from "../hooks/useProjectForm";
+
+export default function DashboardPage() {
+  const dash = useDashboard();
+  
+  // Integrate with project form
+  const form = useProjectForm(
+    dash.token,
+    (project) => {
+      // Update dashboard data when project is created/updated
+      dash.setData((prev) => {
+        if (!prev) return prev;
+        const exists = prev.projects?.some(p => p.id === project.id);
+        return {
+          ...prev,
+          projects: exists
+            ? prev.projects.map(p => p.id === project.id ? project : p)
+            : [project, ...(prev.projects || [])]
+        };
+      });
+    },
+    dash.setSelectedId
+  );
+
+  // Login screen
+  if (!dash.token) {
+    return (
+      <form onSubmit={dash.onLogin}>
+        <TextField
+          label="Email"
+          value={dash.email}
+          onChange={dash.setEmail}
+        />
+        <TextField
+          label="Password"
+          type="password"
+          value={dash.pass}
+          onChange={dash.setPass}
+        />
+        <Button type="submit">Login</Button>
+      </form>
+    );
+  }
+
+  // Dashboard
+  return (
+    <div>
+      {dash.err && (
+        <ErrorAlert message={dash.err.message} status={dash.err.status} />
+      )}
+      
+      <Button onClick={() => {
+        dash.load();
+        dash.setSelectedId(null);
+        form.cancelEdit();
+      }}>
+        Refresh
+      </Button>
+
+      {dash.filteredProjects.map((p) => (
+        <ProjectCard
+          key={p.id}
+          project={p}
+          isSelected={p.id === dash.selectedId}
+          onClick={() => dash.setSelectedId(p.id)}
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+## Internal Implementation
+
+The hook internally uses:
+- `useFetch` for data fetching with the token as a dependency
+- `useMemo` for computed values (`filteredProjects`, `selected`)
+- Multiple `useState` hooks for individual state pieces
+
+## Best Practices
+
+<Tip>
+  Use `filteredProjects` instead of `data.projects` to respect user filters.
+</Tip>
+
+<Warning>
+  Always check if `data` exists before accessing nested properties like `data.projects`.
+</Warning>
+
+<Tip>
+  Clear `selectedId` when refreshing data to avoid showing stale details.
+</Tip>
+
+<Note>
+  The hook automatically re-fetches data when the token changes, so you don't need to manually call `load()` after login.
+</Note>

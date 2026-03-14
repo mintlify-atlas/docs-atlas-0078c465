@@ -1,0 +1,483 @@
+---
+title: 'KPI Tracking'
+description: 'Monitor key performance indicators including revenue, user growth, and churn rate'
+icon: 'chart-line'
+---
+
+# KPI Tracking
+
+APM Enterprise provides real-time Key Performance Indicator (KPI) tracking through the dashboard, giving you instant visibility into your organization's critical business metrics.
+
+## Overview
+
+The KPI tracking system displays three primary metrics in prominent stat cards on the dashboard. These metrics are automatically calculated by the backend and refreshed when you reload dashboard data.
+
+<Note type="info">
+KPIs are displayed in a responsive 3-column grid layout that adapts to mobile, tablet, and desktop screens.
+</Note>
+
+## Primary KPIs
+
+APM Enterprise tracks three core performance indicators:
+
+### 1. Total Revenue (Ingresos Totales)
+
+<Card title="Revenue Metrics" icon="dollar-sign">
+  **Metric Name**: `stats.revenue`
+  
+  **Description**: Total monthly revenue in Peruvian Soles (PEN)
+  
+  **Format**: Currency with two decimal places
+  
+  **Time Period**: Monthly (Mensual)
+  
+  **Icon**: DollarSign (24px)
+  
+  **Use Case**: Track overall financial performance and revenue trends
+</Card>
+
+```jsx
+// Source: DashboardPage.jsx:114-119
+<StatCard
+  title="Ingresos Totales"
+  value={dash.data ? money(dash.data.stats.revenue) : "$0.00"}
+  hint="Mensual"
+  icon={<DollarSign size={24} />}
+/>
+```
+
+#### Revenue Display
+
+- **Default Value**: "$0.00" when no data is loaded
+- **Formatter**: Uses the `money()` utility function
+- **Example Output**: "S/ 125,450.00", "S/ 2,500,000.00"
+- **Color Scheme**: Displayed in the primary brand color for emphasis
+
+<Note>
+The `money()` formatter is imported from `../utils/formatters` and ensures consistent currency formatting across the application.
+</Note>
+
+### 2. New Users (Nuevos Usuarios)
+
+<Card title="User Growth Metrics" icon="users">
+  **Metric Name**: `stats.newUsers`
+  
+  **Description**: Count of new user registrations
+  
+  **Format**: Integer number
+  
+  **Time Period**: Last 7 days (Últimos 7 días)
+  
+  **Icon**: Users (24px)
+  
+  **Use Case**: Monitor user acquisition and growth rate
+</Card>
+
+```jsx
+// Source: DashboardPage.jsx:120-125
+<StatCard
+  title="Nuevos Usuarios"
+  value={dash.data ? String(dash.data.stats.newUsers) : "0"}
+  hint="Últimos 7 días"
+  icon={<Users size={24} />}
+/>
+```
+
+#### User Growth Display
+
+- **Default Value**: "0" when no data is loaded
+- **Formatter**: Converted to string for display
+- **Example Output**: "42", "157", "1,203"
+- **Tracking Period**: Rolling 7-day window
+
+<Tabs>
+  <Tab title="Weekly Tracking">
+    The metric shows a 7-day rolling count, allowing you to:
+    - Track week-over-week growth
+    - Identify acquisition trends
+    - Monitor marketing campaign effectiveness
+  </Tab>
+  
+  <Tab title="Use Cases">
+    **Monitoring Scenarios**:
+    - Post-launch user influx
+    - Marketing campaign results
+    - Seasonal growth patterns
+    - User acquisition cost (UAC) calculations
+  </Tab>
+</Tabs>
+
+### 3. Churn Rate (Tasa de Abandono)
+
+<Card title="Retention Metrics" icon="trending-up">
+  **Metric Name**: `stats.churn`
+  
+  **Description**: Customer churn/attrition rate
+  
+  **Format**: Percentage (rounded to nearest whole number)
+  
+  **Context**: Retention monitoring (Retención)
+  
+  **Icon**: TrendingUp (24px)
+  
+  **Use Case**: Track customer retention and identify potential issues
+</Card>
+
+```jsx
+// Source: DashboardPage.jsx:126-131
+<StatCard
+  title="Tasa de Abandono"
+  value={dash.data ? `${Math.round(dash.data.stats.churn * 100)}%` : "0%"}
+  hint="Retención"
+  icon={<TrendingUp size={24} />}
+/>
+```
+
+#### Churn Rate Calculation
+
+<Steps>
+  <Step title="Backend Calculation">
+    The backend provides the churn rate as a decimal value (e.g., `0.15` for 15% churn).
+  </Step>
+  
+  <Step title="Frontend Conversion">
+    The dashboard converts the decimal to a percentage:
+    
+    ```javascript
+    const churnPercentage = Math.round(dash.data.stats.churn * 100);
+    const displayValue = `${churnPercentage}%`;
+    ```
+  </Step>
+  
+  <Step title="Display">
+    The rounded percentage is displayed with the `%` symbol.
+    
+    **Examples**:
+    - `0.15` → "15%"
+    - `0.087` → "9%"
+    - `0.234` → "23%"
+  </Step>
+</Steps>
+
+<Note type="warning">
+A lower churn rate is better. High churn rates (>20%) may indicate customer satisfaction issues or competitive pressures that require attention.
+</Note>
+
+## StatCard Component
+
+All KPIs are displayed using the reusable `StatCard` component:
+
+```jsx
+// Source: DashboardPage.jsx:17
+import { StatCard } from "../components/StatCard";
+
+// Usage pattern:
+<StatCard
+  title="Metric Name"
+  value="Formatted Value"
+  hint="Time Period or Context"
+  icon={<IconComponent size={24} />}
+/>
+```
+
+### StatCard Properties
+
+| Property | Type | Description | Example |
+|----------|------|-------------|----------|
+| `title` | string | Display name of the KPI | "Ingresos Totales" |
+| `value` | string | Formatted metric value | "S/ 125,450.00" |
+| `hint` | string | Time period or context | "Mensual" |
+| `icon` | ReactNode | Lucide icon component | `<DollarSign size={24} />` |
+
+### Visual Design
+
+The StatCard component features:
+- **Card Background**: White with subtle shadow
+- **Icon Container**: Circular with primary color background
+- **Title**: Small, uppercase, muted text
+- **Value**: Large, bold, obsidian text (primary metric)
+- **Hint**: Extra small, muted text below value
+- **Hover Effect**: Subtle lift and shadow enhancement
+
+## Data Refresh
+
+KPI data can be refreshed through the dashboard's **Actualizar** (Update) button.
+
+### Refresh Process
+
+<Steps>
+  <Step title="User Action">
+    Click the **Actualizar** button in the dashboard header.
+    
+    ```jsx
+    // Source: DashboardPage.jsx:100-109
+    <Button
+      variant="secondary"
+      onClick={() => {
+        dash.load();
+        dash.setSelectedId(null);
+        form.cancelEdit();
+      }}
+      disabled={dash.loading}
+    >
+      <RefreshCw className={cn(dash.loading && "animate-spin")} />
+      Actualizar
+    </Button>
+    ```
+  </Step>
+  
+  <Step title="Loading State">
+    During refresh:
+    - Refresh icon spins
+    - Button becomes disabled
+    - KPI values may briefly show previous data
+  </Step>
+  
+  <Step title="Data Update">
+    The `dash.load()` function:
+    - Fetches latest statistics from `/dashboard` endpoint
+    - Updates the `dash.data.stats` object
+    - Triggers re-render with new KPI values
+  </Step>
+  
+  <Step title="Display Update">
+    All three StatCards automatically update with new values:
+    - Revenue recalculated with `money()` formatter
+    - New user count updated
+    - Churn percentage recalculated and rounded
+  </Step>
+</Steps>
+
+### Automatic Refresh
+
+The dashboard also refreshes KPIs automatically:
+
+- **On Login**: When user successfully authenticates
+- **On Initial Load**: When dashboard component mounts
+- **After Errors**: When recovering from network errors
+
+```jsx
+// Source: DashboardPage.jsx:28-30
+const dash = useDashboard();
+// The useDashboard hook handles automatic data loading
+```
+
+## KPI Grid Layout
+
+The KPI cards are arranged in a responsive grid:
+
+```jsx
+// Source: DashboardPage.jsx:113-132
+<section className="grid grid-cols-1 gap-6 md:grid-cols-3">
+  <StatCard title="Ingresos Totales" {...} />
+  <StatCard title="Nuevos Usuarios" {...} />
+  <StatCard title="Tasa de Abandono" {...} />
+</section>
+```
+
+### Responsive Behavior
+
+<Tabs>
+  <Tab title="Mobile (< 768px)">
+    **Layout**: Single column
+    
+    ```
+    ┌─────────────────┐
+    │ Ingresos Totales│
+    └─────────────────┘
+    ┌─────────────────┐
+    │ Nuevos Usuarios │
+    └─────────────────┘
+    ┌─────────────────┐
+    │ Tasa de Abandono│
+    └─────────────────┘
+    ```
+    
+    - Class: `grid-cols-1`
+    - Each card full width
+    - Vertical stacking
+  </Tab>
+  
+  <Tab title="Tablet & Desktop (≥ 768px)">
+    **Layout**: Three columns
+    
+    ```
+    ┌──────┐ ┌──────┐ ┌──────┐
+    │Ingre-│ │Nuevos│ │Tasa  │
+    │sos   │ │Usua- │ │de    │
+    │Totale│ │rios  │ │Abando│
+    └──────┘ └──────┘ └──────┘
+    ```
+    
+    - Class: `md:grid-cols-3`
+    - Equal width columns
+    - Horizontal layout
+    - Gap: 24px (1.5rem)
+  </Tab>
+</Tabs>
+
+## Data Source
+
+KPIs are sourced from the dashboard API endpoint:
+
+### API Structure
+
+```javascript
+// Expected API response structure
+{
+  "stats": {
+    "revenue": 125450.00,      // Decimal number in PEN
+    "newUsers": 42,            // Integer count
+    "churn": 0.15              // Decimal (0.15 = 15%)
+  },
+  "projects": [...],
+  "me": { "name": "..." }
+}
+```
+
+### useDashboard Hook
+
+The dashboard uses a custom hook for data management:
+
+```jsx
+// Source: DashboardPage.jsx:15, 28
+import { useDashboard } from "../hooks/useDashboard";
+
+const dash = useDashboard();
+// Provides:
+// - dash.data.stats.revenue
+// - dash.data.stats.newUsers
+// - dash.data.stats.churn
+// - dash.loading
+// - dash.load()
+```
+
+## Default States
+
+When no data is available, KPIs display default values:
+
+| KPI | Default Value | Condition |
+|-----|---------------|----------|
+| Revenue | "$0.00" | `!dash.data` |
+| New Users | "0" | `!dash.data` |
+| Churn Rate | "0%" | `!dash.data` |
+
+```jsx
+// Ternary pattern used for all KPIs:
+value={dash.data ? actualValue : defaultValue}
+```
+
+This ensures the UI displays meaningful placeholders during:
+- Initial page load
+- Network errors
+- Backend downtime
+- Session expiration
+
+## Error Handling
+
+When KPI data fails to load, the dashboard displays an error banner:
+
+```jsx
+// Source: DashboardPage.jsx:86-93
+{dash.err && (
+  <div className="rounded-xl bg-red-500 text-white p-4 animate-shake">
+    <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+    <p>
+      Anomalía de Red Detectada: {dash.err.message}
+      (Cod: {dash.err.status || "401"})
+    </p>
+  </div>
+)}
+```
+
+<Note type="warning">
+**Common Error Codes**:
+- **401**: Authentication required - user needs to log in
+- **404**: Dashboard endpoint not found
+- **500**: Server error - backend issue
+- **503**: Service unavailable - network or backend down
+</Note>
+
+When errors occur:
+1. Error banner displays above KPIs
+2. KPIs show default values ("$0.00", "0", "0%")
+3. User can click **Actualizar** to retry
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Regular Monitoring" icon="clock">
+    - Check KPIs daily for anomalies
+    - Compare week-over-week trends
+    - Set threshold alerts for critical metrics
+    - Use refresh button for real-time updates
+  </Card>
+  
+  <Card title="Interpretation" icon="brain">
+    - Revenue: Track against monthly targets
+    - New Users: Correlate with marketing spend
+    - Churn: Investigate if above 15-20%
+    - Cross-reference with project activity
+  </Card>
+  
+  <Card title="Data Quality" icon="shield-check">
+    - Verify backend calculations
+    - Ensure currency formatting is correct
+    - Validate time period accuracy
+    - Monitor for stale data
+  </Card>
+  
+  <Card title="Performance" icon="zap">
+    - KPIs load with dashboard data
+    - No separate API calls required
+    - Cached until manual refresh
+    - Minimal impact on page load
+  </Card>
+</CardGroup>
+
+## Integration with Projects
+
+While KPIs are displayed separately, they relate to project activity:
+
+- **Revenue** may correlate with active project budgets
+- **New Users** might include users added to projects
+- **Churn** could indicate project abandonment rates
+
+The dashboard layout positions KPIs above the project list, allowing users to see the correlation between high-level metrics and individual project performance.
+
+```jsx
+// Source: DashboardPage.jsx:84-285
+<div className="space-y-10">
+  {/* Error Banner */}
+  {dash.err && <ErrorBanner />}
+  
+  {/* Header with Refresh */}
+  <DashboardHeader />
+  
+  {/* KPI Cards */}
+  <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <StatCard title="Ingresos Totales" {...} />
+    <StatCard title="Nuevos Usuarios" {...} />
+    <StatCard title="Tasa de Abandono" {...} />
+  </section>
+  
+  {/* Projects List */}
+  <ProjectsSection />
+</div>
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Dashboard Overview" icon="gauge" href="/features/dashboard">
+    Learn about the complete dashboard interface
+  </Card>
+  
+  <Card title="Project Management" icon="folder-open" href="/features/project-management">
+    See how project budgets contribute to revenue
+  </Card>
+  
+  <Card title="User Management" icon="users" href="/features/user-management">
+    Understand how new users are tracked and managed
+  </Card>
+</CardGroup>

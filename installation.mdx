@@ -1,0 +1,445 @@
+---
+title: "Installation"
+description: "Comprehensive installation guide for APM Enterprise"
+---
+
+This guide covers the complete installation process for APM Enterprise, from system requirements to advanced configuration.
+
+## System Requirements
+
+Before installing APM Enterprise, ensure your system meets the following requirements:
+
+<Info>
+  **Minimum Requirements**
+  - Node.js 18.0 or higher
+  - npm 8.0+ (comes bundled with Node.js)
+  - 2GB available RAM
+  - Modern web browser (Chrome, Firefox, Safari, or Edge)
+</Info>
+
+<Tip>
+  **Recommended Setup**
+  - Node.js 20.x LTS
+  - npm 10.x or pnpm 8.x for faster installs
+  - 4GB+ RAM for optimal development experience
+  - VS Code with ES7+ React/Redux/React-Native snippets extension
+</Tip>
+
+### Verify Node.js Installation
+
+Check your current Node.js and npm versions:
+
+```bash
+node --version  # Should output v18.0.0 or higher
+npm --version   # Should output 8.0.0 or higher
+```
+
+If you need to install or update Node.js, visit [nodejs.org](https://nodejs.org/) or use a version manager like [nvm](https://github.com/nvm-sh/nvm).
+
+## Installation Methods
+
+<Steps>
+  <Step title="Clone the Repository">
+    First, clone the APM Enterprise repository:
+
+    ```bash
+    git clone https://github.com/your-org/apm-enterprise.git
+    cd apm-enterprise
+    ```
+
+    Or if you prefer SSH:
+
+    ```bash
+    git clone git@github.com:your-org/apm-enterprise.git
+    cd apm-enterprise
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Choose your preferred package manager and install dependencies:
+
+    <CodeGroup>
+      ```bash npm
+      npm install
+      ```
+
+      ```bash yarn
+      yarn install
+      ```
+
+      ```bash pnpm
+      pnpm install
+      ```
+    </CodeGroup>
+
+    <Note>
+      **Installation time**: Typically takes 1-3 minutes depending on your internet connection and package manager.
+    </Note>
+  </Step>
+
+  <Step title="Verify Installation">
+    After installation completes, verify all dependencies are correctly installed:
+
+    ```bash
+    npm list --depth=0
+    ```
+
+    You should see the following key packages:
+
+    ```
+    apm-refactor@1.0.0
+    ├── @radix-ui/react-slot@1.2.4
+    ├── clsx@2.1.1
+    ├── lucide-react@0.577.0
+    ├── react@18.2.0
+    ├── react-dom@18.2.0
+    └── tailwind-merge@3.5.0
+    ```
+  </Step>
+</Steps>
+
+## Project Dependencies
+
+APM Enterprise uses a carefully curated set of dependencies for optimal performance and developer experience.
+
+### Production Dependencies
+
+From `package.json`:
+```json
+"dependencies": {
+  "@radix-ui/react-slot": "^1.2.4",
+  "clsx": "^2.1.1",
+  "lucide-react": "^0.577.0",
+  "react": "^18.2.0",
+  "react-dom": "^18.2.0",
+  "tailwind-merge": "^3.5.0"
+}
+```
+
+**Key Dependencies:**
+
+- **React 18.2** - Core UI library with concurrent features
+- **Lucide React** - Beautiful, consistent icon system (600+ icons)
+- **Radix UI** - Unstyled, accessible component primitives
+- **clsx** - Utility for constructing className strings
+- **tailwind-merge** - Intelligently merges Tailwind CSS classes
+
+### Development Dependencies
+
+```json
+"devDependencies": {
+  "@tailwindcss/postcss": "^4.2.1",
+  "@types/react": "^18.2.66",
+  "@types/react-dom": "^18.2.22",
+  "@vitejs/plugin-react": "^4.2.1",
+  "autoprefixer": "^10.4.27",
+  "postcss": "^8.5.8",
+  "tailwindcss": "^4.2.1",
+  "vite": "^5.2.0"
+}
+```
+
+**Build Tools:**
+
+- **Vite** - Next-generation frontend build tool with instant HMR
+- **TailwindCSS** - Utility-first CSS framework
+- **PostCSS** - CSS transformation and optimization
+- **Autoprefixer** - Automatic vendor prefix handling
+
+## Configuration Files
+
+APM Enterprise comes pre-configured with sensible defaults. Here are the key configuration files:
+
+### Vite Configuration
+
+The Vite configuration is minimal and focused:
+
+```javascript vite.config.js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+})
+```
+
+<Tip>
+  The default Vite configuration works out of the box. You can customize it later for path aliases, environment variables, or build optimizations.
+</Tip>
+
+### TailwindCSS Configuration
+
+Custom color palette and theme extensions:
+
+```javascript tailwind.config.js
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          DEFAULT: "#B2914B",
+          foreground: "#FFFFFF",
+        },
+        background: "#FDF8F1",
+        accent: "#E5C07B",
+        muted: "#F5E6CA",
+        obsidian: "#1C1917",
+      },
+      fontFamily: {
+        sans: ["Be Vietnam Pro", "sans-serif"],
+      },
+    },
+  },
+  plugins: [],
+}
+```
+
+**Custom Colors:**
+- `primary` - Gold accent color (#B2914B)
+- `background` - Warm cream background (#FDF8F1)
+- `obsidian` - Deep black for text (#1C1917)
+- `accent` - Light gold highlights (#E5C07B)
+- `muted` - Subtle beige tones (#F5E6CA)
+
+### PostCSS Configuration
+
+```javascript postcss.config.js
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {},
+    autoprefixer: {},
+  },
+}
+```
+
+## Environment Setup
+
+APM Enterprise runs entirely on the frontend with a mock API server. No environment variables are required for basic operation.
+
+### Optional Environment Variables
+
+For production deployment, you may want to configure:
+
+<CodeGroup>
+  ```bash .env.local
+  # API Configuration (Future Use)
+  VITE_API_BASE_URL=https://api.apm-enterprise.com
+  VITE_API_TIMEOUT=30000
+  
+  # Feature Flags
+  VITE_ENABLE_ANALYTICS=true
+  VITE_ENABLE_DEBUG_MODE=false
+  ```
+
+  ```bash .env.production
+  # Production API Endpoint
+  VITE_API_BASE_URL=https://api.apm-enterprise.com
+  VITE_API_TIMEOUT=30000
+  VITE_ENABLE_DEBUG_MODE=false
+  ```
+</CodeGroup>
+
+<Warning>
+  Never commit `.env` files containing sensitive credentials to version control. These files are already included in `.gitignore`.
+</Warning>
+
+## File Structure
+
+After installation, your project structure will look like this:
+
+```
+apm-enterprise/
+├── public/
+│   ├── apm.png              # Application logo
+│   └── favicon.png          # Browser favicon
+├── src/
+│   ├── components/          # Atomic UI components
+│   │   ├── Badge.jsx
+│   │   ├── Button.jsx
+│   │   ├── Card.jsx
+│   │   ├── ErrorModal.jsx
+│   │   ├── Layout.jsx
+│   │   ├── Select.jsx
+│   │   ├── StatCard.jsx
+│   │   ├── TextField.jsx
+│   │   └── Tooltip.jsx
+│   ├── hooks/              # Custom React hooks
+│   │   ├── useDashboard.js
+│   │   ├── useFetch.js
+│   │   ├── useForm.js
+│   │   ├── useProjectForm.js
+│   │   ├── useToggle.js
+│   │   └── useUsers.js
+│   ├── pages/              # Page components
+│   │   ├── DashboardPage.jsx
+│   │   ├── ProjectsPage.jsx
+│   │   └── UsersPage.jsx
+│   ├── services/           # API and mock server
+│   │   └── mockServer.js
+│   ├── utils/              # Utility functions
+│   ├── App.jsx             # Root component
+│   ├── main.jsx            # Application entry point
+│   └── index.css           # Global styles
+├── index.html              # HTML template
+├── package.json            # Dependencies and scripts
+├── vite.config.js          # Vite configuration
+├── tailwind.config.js      # TailwindCSS configuration
+└── postcss.config.js       # PostCSS configuration
+```
+
+## Post-Installation Steps
+
+<Steps>
+  <Step title="Start Development Server">
+    Launch the development environment:
+
+    ```bash
+    npm run dev
+    ```
+
+    Expected output:
+    ```
+    VITE v5.2.0  ready in 423 ms
+
+    ➜  Local:   http://localhost:5173/
+    ➜  Network: use --host to expose
+    ➜  press h to show help
+    ```
+  </Step>
+
+  <Step title="Access the Application">
+    Open your browser and navigate to:
+    ```
+    http://localhost:5173
+    ```
+
+    You should see the APM Enterprise login screen.
+  </Step>
+
+  <Step title="Test the Mock Server">
+    The mock server is automatically initialized in `src/main.jsx`:
+
+    ```javascript src/main.jsx
+    import React from 'react'
+    import ReactDOM from 'react-dom/client'
+    import App from './App.jsx'
+    import './index.css'
+    import './services/mockServer'  // Mock API initialization
+
+    ReactDOM.createRoot(document.getElementById('root')).render(
+        <React.StrictMode>
+            <App />
+        </React.StrictMode>,
+    )
+    ```
+
+    The mock server intercepts API calls and provides realistic responses for development.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 5173 is already in use:
+
+```bash
+# Vite will automatically try the next available port
+# Or specify a custom port:
+vite --port 3000
+```
+
+### Node Version Issues
+
+If you encounter errors related to Node.js version:
+
+```bash
+# Check your Node version
+node --version
+
+# Use nvm to switch versions
+nvm install 20
+nvm use 20
+```
+
+### Module Not Found Errors
+
+If you see "Module not found" errors:
+
+```bash
+# Clear node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### Build Failures
+
+If the build fails:
+
+```bash
+# Clear Vite cache
+rm -rf node_modules/.vite
+
+# Reinstall dependencies
+npm install
+
+# Try building again
+npm run build
+```
+
+## IDE Configuration
+
+### VS Code (Recommended)
+
+Recommended extensions for optimal development:
+
+```json .vscode/extensions.json
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "dsznajder.es7-react-js-snippets"
+  ]
+}
+```
+
+### VS Code Settings
+
+```json .vscode/settings.json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "tailwindCSS.experimental.classRegex": [
+    ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+  ]
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+    Jump into development with our quickstart tutorial
+  </Card>
+  
+  <Card title="Architecture Overview" icon="sitemap" href="/architecture/overview">
+    Understand the layered architecture pattern
+  </Card>
+  
+  <Card title="Component Library" icon="cubes" href="/api/components/layout">
+    Explore the atomic component system
+  </Card>
+  
+  <Card title="Development Setup" icon="code" href="/development/setup">
+    Set up your development environment
+  </Card>
+</CardGroup>
+
+<Info>
+  For questions or issues, refer to the troubleshooting section or open an issue on the GitHub repository.
+</Info>

@@ -1,0 +1,311 @@
+---
+title: 'HTTP Client'
+description: 'Core HTTP client for making API requests'
+icon: 'globe'
+---
+
+## Overview
+
+The `httpClient` provides a unified interface for making HTTP requests to the APM Enterprise API. It handles request configuration, authentication headers, and response processing.
+
+## Configuration
+
+### BASE_URL
+
+All requests are made relative to the base URL:
+
+```javascript
+const BASE_URL = "https://api.apm-enterprise.com/v1";
+```
+
+### Default Headers
+
+Every request includes the following default headers:
+
+<ParamField path="Content-Type" type="string" default="application/json">
+  Specifies JSON content type for request body
+</ParamField>
+
+<ParamField path="Authorization" type="string" default="Bearer demo-token">
+  Authentication token for API access
+</ParamField>
+
+## Methods
+
+### get()
+
+Make a GET request to fetch data from the API.
+
+```javascript
+httpClient.get(endpoint, options)
+```
+
+<ParamField path="endpoint" type="string" required>
+  The API endpoint path (e.g., `/dashboard`, `/projects/123`)
+</ParamField>
+
+<ParamField path="options" type="object">
+  Optional configuration object
+  
+  <Expandable title="properties">
+    <ParamField path="headers" type="object">
+      Additional headers to merge with defaults
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+**Returns:** `Promise<Object>` - Parsed JSON response
+
+#### Example
+
+```javascript
+import { httpClient } from './services/httpClient';
+
+// Basic GET request
+const data = await httpClient.get("/dashboard");
+
+// GET with custom headers
+const response = await httpClient.get("/dashboard", {
+  headers: { Authorization: `Bearer ${token}` }
+});
+```
+
+**Real-world usage from `src/services/api.js:4`:**
+
+```javascript
+export async function apiGetDashboard({ token }) {
+  const response = await httpClient.get("/dashboard", {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response;
+}
+```
+
+---
+
+### post()
+
+Make a POST request to create new resources.
+
+```javascript
+httpClient.post(endpoint, data, options)
+```
+
+<ParamField path="endpoint" type="string" required>
+  The API endpoint path
+</ParamField>
+
+<ParamField path="data" type="object" required>
+  Request payload to be JSON-stringified
+</ParamField>
+
+<ParamField path="options" type="object">
+  Optional configuration object
+  
+  <Expandable title="properties">
+    <ParamField path="headers" type="object">
+      Additional headers to merge with defaults
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+**Returns:** `Promise<Object>` - Parsed JSON response
+
+#### Example
+
+```javascript
+// Create a new project
+const newProject = await httpClient.post("/projects", {
+  name: "API Migration",
+  status: "active",
+  priority: "high"
+});
+
+// POST with custom authorization
+const project = await httpClient.post("/projects", payload, {
+  headers: { Authorization: `Bearer ${token}` }
+});
+```
+
+**Real-world usage from `src/services/api.js:12`:**
+
+```javascript
+export async function apiCreateProject({ token, payload }) {
+  return httpClient.post("/projects", payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+```
+
+---
+
+### put()
+
+Make a PUT request to update an existing resource.
+
+```javascript
+httpClient.put(endpoint, data, options)
+```
+
+<ParamField path="endpoint" type="string" required>
+  The API endpoint path (typically includes resource ID)
+</ParamField>
+
+<ParamField path="data" type="object" required>
+  Complete resource data to replace existing
+</ParamField>
+
+<ParamField path="options" type="object">
+  Optional configuration object
+  
+  <Expandable title="properties">
+    <ParamField path="headers" type="object">
+      Additional headers to merge with defaults
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+**Returns:** `Promise<Object>` - Parsed JSON response
+
+#### Example
+
+```javascript
+// Update a project completely
+const updated = await httpClient.put(`/projects/${id}`, {
+  name: "Updated Project Name",
+  status: "completed",
+  priority: "low"
+});
+```
+
+**Real-world usage from `src/services/api.js:24`:**
+
+```javascript
+export async function apiUpdateProject({ token, id, payload }) {
+  return httpClient.put(`/projects/${id}`, payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+```
+
+---
+
+### patch()
+
+Make a PATCH request to partially update a resource.
+
+```javascript
+httpClient.patch(endpoint, data, options)
+```
+
+<ParamField path="endpoint" type="string" required>
+  The API endpoint path (typically includes resource ID)
+</ParamField>
+
+<ParamField path="data" type="object" required>
+  Partial resource data to update (can be empty object)
+</ParamField>
+
+<ParamField path="options" type="object">
+  Optional configuration object
+  
+  <Expandable title="properties">
+    <ParamField path="headers" type="object">
+      Additional headers to merge with defaults
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+**Returns:** `Promise<Object>` - Parsed JSON response
+
+#### Example
+
+```javascript
+// Toggle project status (no data needed)
+const result = await httpClient.patch(`/projects/${id}/toggle`, {});
+
+// Partially update a project
+const updated = await httpClient.patch(`/projects/${id}`, {
+  status: "on-hold"
+});
+```
+
+**Real-world usage from `src/services/api.js:18`:**
+
+```javascript
+export async function apiToggleProjectStatus({ token, id }) {
+  return httpClient.patch(`/projects/${id}/toggle`, {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+```
+
+---
+
+### delete()
+
+Make a DELETE request to remove a resource.
+
+```javascript
+httpClient.delete(endpoint, options)
+```
+
+<ParamField path="endpoint" type="string" required>
+  The API endpoint path (typically includes resource ID)
+</ParamField>
+
+<ParamField path="options" type="object">
+  Optional configuration object
+  
+  <Expandable title="properties">
+    <ParamField path="headers" type="object">
+      Additional headers to merge with defaults
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+**Returns:** `Promise<Object>` - Parsed JSON response
+
+#### Example
+
+```javascript
+// Delete a project
+await httpClient.delete(`/projects/${id}`);
+
+// Delete with custom headers
+await httpClient.delete(`/projects/${id}`, {
+  headers: { Authorization: `Bearer ${token}` }
+});
+```
+
+## Header Customization
+
+The `getHeaders()` helper function merges custom headers with defaults:
+
+```javascript
+const getHeaders = (extraHeaders = {}) => ({
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer demo-token',
+  ...extraHeaders,
+});
+```
+
+This allows you to override default headers by passing them in the `options.headers` object:
+
+```javascript
+// Override authorization header
+await httpClient.get("/dashboard", {
+  headers: { 
+    Authorization: `Bearer ${userToken}`,
+    'X-Custom-Header': 'value'
+  }
+});
+```
+
+## Response Handling
+
+All methods use the `handleResponse()` function to process responses. See [Error Handling](/api/error-handling) for details on error management.
+
+## Source Code
+
+Location: `src/services/httpClient.js`

@@ -1,0 +1,493 @@
+---
+title: 'useProjectForm'
+description: 'Specialized form hook for creating and editing APM Enterprise projects with validation and API integration'
+---
+
+## Overview
+
+The `useProjectForm` hook is a specialized form management solution built on top of `useForm`. It provides complete project creation and editing capabilities with built-in validation, API integration, and edit mode management.
+
+## Function Signature
+
+```javascript
+function useProjectForm(token, onProjectCreated, setSelectedId)
+```
+
+## Parameters
+
+<ParamField path="token" type="string" required>
+  Authentication token used for API requests.
+  
+  ```javascript
+  useProjectForm("demo-token", onCreated, setSelected)
+  ```
+</ParamField>
+
+<ParamField path="onProjectCreated" type="function" required>
+  Callback function invoked after a project is successfully created or updated.
+  
+  ```javascript
+  const onProjectCreated = (project) => {
+    console.log("Project saved:", project);
+    // Update parent state, show notification, etc.
+  }
+  ```
+  
+  **Parameters:**
+  - `project` (object): The created or updated project object from the API
+</ParamField>
+
+<ParamField path="setSelectedId" type="function" required>
+  Function to set the selected project ID. Called after creating a new project to automatically select it.
+  
+  ```javascript
+  const setSelectedId = (id) => {
+    setCurrentProjectId(id);
+  }
+  ```
+</ParamField>
+
+## Return Values
+
+### Form Fields
+
+<ResponseField name="name" type="string">
+  Current value of the project name field.
+</ResponseField>
+
+<ResponseField name="setName" type="function">
+  Update the project name.
+  
+  ```javascript
+  <input value={name} onChange={(e) => setName(e.target.value)} />
+  ```
+</ResponseField>
+
+<ResponseField name="owner" type="string">
+  Current value of the project owner field.
+</ResponseField>
+
+<ResponseField name="setOwner" type="function">
+  Update the project owner.
+  
+  ```javascript
+  <input value={owner} onChange={(e) => setOwner(e.target.value)} />
+  ```
+</ResponseField>
+
+<ResponseField name="budget" type="string">
+  Current value of the project budget (as string for input compatibility).
+</ResponseField>
+
+<ResponseField name="setBudget" type="function">
+  Update the project budget.
+  
+  ```javascript
+  <input value={budget} onChange={(e) => setBudget(e.target.value)} />
+  ```
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current project status. Values: `"active"` or `"paused"`.
+</ResponseField>
+
+<ResponseField name="setStatus" type="function">
+  Update the project status.
+  
+  ```javascript
+  <select value={status} onChange={(e) => setStatus(e.target.value)}>
+    <option value="active">Active</option>
+    <option value="paused">Paused</option>
+  </select>
+  ```
+</ResponseField>
+
+### Edit Mode Management
+
+<ResponseField name="editingId" type="string | null">
+  The ID of the project currently being edited, or `null` if in create mode.
+  
+  ```javascript
+  {editingId ? "Edit Project" : "Create Project"}
+  ```
+</ResponseField>
+
+<ResponseField name="prepareEdit" type="function">
+  Load a project into the form for editing.
+  
+  ```javascript
+  prepareEdit(project)
+  ```
+  
+  **Parameters:**
+  - `project` (object): The project to edit
+  
+  **Behavior:**
+  1. Sets `editingId` to the project's ID
+  2. Populates form fields with project data
+  3. Scrolls to the form at the bottom of the page
+</ResponseField>
+
+<ResponseField name="cancelEdit" type="function">
+  Cancel editing and reset the form.
+  
+  ```javascript
+  <button onClick={cancelEdit}>Cancel</button>
+  ```
+  
+  **Behavior:**
+  1. Clears `editingId`
+  2. Resets form to initial values
+  3. Clears all errors
+</ResponseField>
+
+### Validation & Submission
+
+<ResponseField name="saving" type="boolean">
+  Indicates whether the form is currently being submitted (creating or updating).
+  
+  ```javascript
+  <button disabled={saving}>
+    {saving ? "Saving..." : "Save"}
+  </button>
+  ```
+</ResponseField>
+
+<ResponseField name="formErr" type="string | null">
+  The first validation error found across all fields, or `null` if all fields are valid.
+  
+  ```javascript
+  {formErr && <ErrorMessage>{formErr}</ErrorMessage>}
+  ```
+</ResponseField>
+
+<ResponseField name="nameErr" type="string | null">
+  Validation error for the name field.
+</ResponseField>
+
+<ResponseField name="ownerErr" type="string | null">
+  Validation error for the owner field.
+</ResponseField>
+
+<ResponseField name="budgetErr" type="string | null">
+  Validation error for the budget field.
+</ResponseField>
+
+<ResponseField name="onAction" type="function">
+  Form submission handler. Automatically determines whether to create or update based on `editingId`.
+  
+  ```javascript
+  <form onSubmit={onAction}>
+    {/* form fields */}
+  </form>
+  ```
+  
+  **Behavior:**
+  - If `editingId` exists: Updates the existing project
+  - If `editingId` is null: Creates a new project
+  - On success: Calls `onProjectCreated` callback
+  - Resets form after completion
+</ResponseField>
+
+## Validation Rules
+
+The hook includes built-in validation:
+
+<Tabs>
+  <Tab title="Name">
+    **Rule:** Minimum 3 characters (excluding whitespace)
+    
+    **Error:** `"Minimo 3 caracteres"`
+    
+    ```javascript
+    name.trim().length < 3 // Invalid
+    ```
+  </Tab>
+  
+  <Tab title="Owner">
+    **Rule:** Minimum 2 characters (excluding whitespace)
+    
+    **Error:** `"Owner muy corto"`
+    
+    ```javascript
+    owner.trim().length < 2 // Invalid
+    ```
+  </Tab>
+  
+  <Tab title="Budget">
+    **Rule:** Must be a valid number
+    
+    **Error:** `"Debe ser numero"`
+    
+    ```javascript
+    isNaN(Number(budget)) // Invalid
+    ```
+  </Tab>
+</Tabs>
+
+## Usage Examples
+
+### Basic Create Form
+
+```javascript
+import { useProjectForm } from "../hooks/useProjectForm";
+import { TextField } from "../components/TextField";
+import { Button } from "../components/Button";
+
+function CreateProjectForm({ token, onCreated }) {
+  const form = useProjectForm(token, onCreated, () => {});
+
+  return (
+    <form onSubmit={form.onAction}>
+      <TextField
+        label="Project Name"
+        value={form.name}
+        onChange={form.setName}
+        error={form.nameErr}
+      />
+      
+      <TextField
+        label="Owner"
+        value={form.owner}
+        onChange={form.setOwner}
+        error={form.ownerErr}
+      />
+      
+      <TextField
+        label="Budget"
+        value={form.budget}
+        onChange={form.setBudget}
+        error={form.budgetErr}
+      />
+      
+      <select value={form.status} onChange={(e) => form.setStatus(e.target.value)}>
+        <option value="active">Active</option>
+        <option value="paused">Paused</option>
+      </select>
+
+      <Button type="submit" disabled={form.saving}>
+        {form.saving ? "Creating..." : "Create Project"}
+      </Button>
+    </form>
+  );
+}
+```
+
+### Create and Edit Form
+
+```javascript
+function ProjectForm({ token, projects, onUpdate }) {
+  const [selectedId, setSelectedId] = useState(null);
+  
+  const form = useProjectForm(
+    token,
+    (project) => {
+      onUpdate(project);
+      setSelectedId(project.id);
+    },
+    setSelectedId
+  );
+
+  return (
+    <div>
+      {/* Project List */}
+      {projects.map((project) => (
+        <div key={project.id}>
+          <span>{project.name}</span>
+          <button onClick={() => form.prepareEdit(project)}>
+            Edit
+          </button>
+        </div>
+      ))}
+
+      {/* Form */}
+      <form onSubmit={form.onAction}>
+        <h2>
+          {form.editingId ? "Edit Project" : "New Project"}
+        </h2>
+        
+        {form.editingId && (
+          <button type="button" onClick={form.cancelEdit}>
+            Cancel Edit
+          </button>
+        )}
+
+        <TextField
+          label="Name"
+          value={form.name}
+          onChange={form.setName}
+          error={form.nameErr}
+        />
+        
+        <TextField
+          label="Owner"
+          value={form.owner}
+          onChange={form.setOwner}
+          error={form.ownerErr}
+        />
+        
+        <TextField
+          label="Budget"
+          value={form.budget}
+          onChange={form.setBudget}
+          error={form.budgetErr}
+        />
+
+        {form.formErr && (
+          <div className="error">{form.formErr}</div>
+        )}
+
+        <button type="submit" disabled={form.saving}>
+          {form.saving 
+            ? "Processing..." 
+            : form.editingId 
+              ? "Save Changes" 
+              : "Create Project"
+          }
+        </button>
+      </form>
+    </div>
+  );
+}
+```
+
+### Integration with Dashboard
+
+```javascript
+import { useDashboard } from "../hooks/useDashboard";
+import { useProjectForm } from "../hooks/useProjectForm";
+
+export default function DashboardPage() {
+  const dash = useDashboard();
+  
+  const form = useProjectForm(
+    dash.token,
+    (project) => {
+      // Update dashboard data
+      dash.setData((prev) => {
+        if (!prev) return prev;
+        const exists = prev.projects?.some(p => p.id === project.id);
+        return {
+          ...prev,
+          projects: exists
+            ? prev.projects.map(p => p.id === project.id ? project : p)
+            : [project, ...(prev.projects || [])]
+        };
+      });
+    },
+    dash.setSelectedId
+  );
+
+  return (
+    <div>
+      {/* Dashboard stats */}
+      {/* Project list */}
+      
+      {/* Create/Edit Form */}
+      <form onSubmit={form.onAction}>
+        <TextField
+          label="Project Name"
+          value={form.name}
+          onChange={form.setName}
+          error={form.nameErr}
+          placeholder="Ej: Rediseño APM"
+        />
+        <TextField
+          label="Responsable"
+          value={form.owner}
+          onChange={form.setOwner}
+          error={form.ownerErr}
+          placeholder="Ej: Arq. Carlos"
+        />
+        <TextField
+          label="Presupuesto Inicial (PEN)"
+          value={form.budget}
+          onChange={form.setBudget}
+          error={form.budgetErr}
+          placeholder="0"
+        />
+        <button type="submit" disabled={form.saving}>
+          {form.saving 
+            ? "Procesando..." 
+            : form.editingId 
+              ? "Guardar Cambios" 
+              : "Generar Proyecto"
+          }
+        </button>
+      </form>
+    </div>
+  );
+}
+```
+
+### Standalone Edit Button
+
+```javascript
+function ProjectCard({ project, formHook }) {
+  return (
+    <div>
+      <h3>{project.name}</h3>
+      <p>{project.owner}</p>
+      <p>{money(project.budget)}</p>
+      <button onClick={() => formHook.prepareEdit(project)}>
+        Edit
+      </button>
+    </div>
+  );
+}
+```
+
+## API Integration
+
+The hook automatically calls the appropriate API endpoint:
+
+### Create Project
+
+```javascript
+apiCreateProject({
+  token,
+  payload: {
+    name: formValues.name,
+    owner: formValues.owner,
+    budget: Number(formValues.budget),
+    status: formValues.status
+  }
+})
+```
+
+### Update Project
+
+```javascript
+apiUpdateProject({
+  token,
+  id: editingId,
+  payload: {
+    name: formValues.name,
+    owner: formValues.owner,
+    budget: Number(formValues.budget),
+    status: formValues.status
+  }
+})
+```
+
+## Best Practices
+
+<Tip>
+  Use the `editingId` value to change button text and form headings between create and edit modes.
+</Tip>
+
+<Warning>
+  Always provide all three required parameters to `useProjectForm`. Missing callbacks can cause errors.
+</Warning>
+
+<Tip>
+  The `prepareEdit` function automatically scrolls to the form. Ensure your form is placed at the bottom of the page for best UX.
+</Tip>
+
+<Note>
+  Budget values are stored as strings in form state but automatically converted to numbers when sent to the API.
+</Note>
+
+<Tip>
+  Use `formErr` to display a general error message at the form level, while individual field errors can be shown next to their respective inputs.
+</Tip>

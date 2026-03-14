@@ -1,0 +1,218 @@
+---
+title: Error Simulation
+description: Test application resilience using the Network Engineering Control Panel
+---
+
+## Overview
+
+APM Enterprise includes a built-in **Network Engineering Control Panel** in the sidebar that allows developers to simulate various API error conditions. This tool is essential for testing error handling, UI feedback, and system recovery mechanisms.
+
+<Info>
+  The error simulation panel is only visible when the sidebar is expanded (not collapsed).
+</Info>
+
+## Accessing the Control Panel
+
+The panel is located in the application sidebar and labeled **"Control de Red"** under the **"Ingeniería API"** section.
+
+From `src/components/Layout.jsx:77-126`:
+
+```jsx
+{!isCollapsed && (
+  <div className={cn(
+    "mt-4 p-3 rounded-xl transition-all duration-500 border border-white/5 cursor-pointer",
+    showSim ? "bg-white/10 ring-1 ring-white/20" : "bg-white/5 hover:bg-white/10"
+  )} onClick={() => setShowSim(!showSim)}>
+    <div className="flex items-center justify-between">
+      <div className="space-y-0.5">
+        <span className="text-[8px] font-black text-white/50 tracking-widest flex items-center gap-2 uppercase">
+          Ingeniería API
+        </span>
+        <p className="text-[10px] font-bold text-white tracking-tight">Control de Red</p>
+      </div>
+      <Zap size={14} className={cn("transition-all duration-500", showSim ? "text-accent" : "text-white/20")} />
+    </div>
+```
+
+## Simulating Errors
+
+The panel provides four error simulation buttons:
+
+<Steps>
+  <Step title="500 - Internal Server Error">
+    Click the red **500** button to simulate a critical server failure.
+
+    ```jsx
+    <button
+      onClick={() => window.setSimulatedError(500)}
+      className="flex flex-col items-center justify-center gap-2 rounded-lg bg-red-500/10 py-2 text-[10px] font-black text-white border border-white/10 hover:bg-red-500/20 transition-all active:scale-95"
+    >
+      <ShieldAlert size={14} /> 500
+    </button>
+    ```
+
+    **System Response:**
+    - Clears all data tables
+    - Displays red emergency modal
+    - Triggers emergency protocol
+  </Step>
+
+  <Step title="401 - Unauthorized">
+    Click the violet **401** button to simulate an authentication failure.
+
+    ```jsx
+    <button
+      onClick={() => window.setSimulatedError(401)}
+      className="flex flex-col items-center justify-center gap-2 rounded-lg bg-violet-500/10 py-2 text-[10px] font-black text-white border border-white/10 hover:bg-violet-500/20 transition-all active:scale-95"
+    >
+      <ShieldAlert size={14} /> 401
+    </button>
+    ```
+
+    **System Response:**
+    - Clears local cache
+    - Displays violet session expiration modal
+    - Prompts for re-authentication
+  </Step>
+
+  <Step title="404 - Not Found">
+    Click the blue **404** button to simulate a missing resource.
+
+    ```jsx
+    <button
+      onClick={() => window.setSimulatedError(404)}
+      className="flex flex-col items-center justify-center gap-2 rounded-lg bg-blue-500/10 py-2 text-[10px] font-black text-white border border-white/10 hover:bg-blue-500/20 transition-all active:scale-95"
+    >
+      <Info size={14} /> 404
+    </button>
+    ```
+
+    **System Response:**
+    - Renders resource-specific empty state
+    - Displays blue informational modal
+    - Maintains application stability
+  </Step>
+
+  <Step title="Restore (200)">
+    Click the green **Restaurar (200)** button to restore normal operation.
+
+    ```jsx
+    <button
+      onClick={() => {
+        window.setSimulatedError(null);
+        setShowSim(false);
+      }}
+      className="w-full rounded-lg bg-emerald-500/20 py-2 text-[10px] font-black text-white border border-white/10 hover:bg-emerald-500/30 transition-all"
+    >
+      Restaurar (200)
+    </button>
+    ```
+
+    **System Response:**
+    - Restores data flow immediately
+    - Displays success modal with auto-dismiss
+    - Closes the control panel
+  </Step>
+</Steps>
+
+## Modal Feedback System
+
+When an error is simulated, the `ErrorModal` component (`src/components/ErrorModal.jsx`) displays contextual feedback in the bottom-right corner.
+
+### Modal Configuration
+
+Each error code has a specific visual configuration:
+
+```javascript
+const config = {
+  500: {
+    color: "text-white",
+    bg: "bg-red-600",
+    border: "border-red-700",
+    icon: <ShieldAlert size={20} className="text-white" />,
+    label: "Falla Crítica del Sistema"
+  },
+  404: {
+    color: "text-white",
+    bg: "bg-blue-600",
+    border: "border-blue-700",
+    icon: <Info size={20} className="text-white" />,
+    label: "Recurso no Encontrado"
+  },
+  200: {
+    color: "text-white",
+    bg: "bg-emerald-500",
+    border: "border-emerald-600",
+    icon: <CheckCircle2 size={20} className="text-white" />,
+    label: "Protocolo Restablecido"
+  },
+  401: {
+    color: "text-white",
+    bg: "bg-violet-600",
+    border: "border-violet-700",
+    icon: <ShieldAlert size={20} className="text-white" />,
+    label: "Acceso no Autorizado"
+  }
+};
+```
+
+### Auto-Dismiss for Success
+
+The success modal (200) automatically dismisses after 2.5 seconds:
+
+```javascript
+useEffect(() => {
+  if (isOpen && (errorCode === 200 || !errorCode)) {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 2500);
+    return () => clearTimeout(timer);
+  }
+}, [isOpen, errorCode, onClose]);
+```
+
+<Note>
+  The progress bar animation syncs with the auto-dismiss timer for visual feedback.
+</Note>
+
+## Implementation Pattern
+
+The error simulation uses a global event system:
+
+1. **Trigger**: Sidebar button calls `window.setSimulatedError(code)`
+2. **Dispatch**: Function fires `apm:api_status` CustomEvent
+3. **Listen**: `App.jsx` listens for the event
+4. **React**: Modal state updates, triggering UI feedback
+
+From `src/App.jsx:12-22`:
+
+```javascript
+useEffect(() => {
+  const handleApiStatus = (e) => {
+    const { code, message } = e.detail;
+    setErrorModal({ isOpen: false, code: null, message: "" });
+    setTimeout(() => {
+      setErrorModal({ isOpen: true, code, message });
+    }, 50);
+  };
+  window.addEventListener("apm:api_status", handleApiStatus);
+  return () => window.removeEventListener("apm:api_status", handleApiStatus);
+}, []);
+```
+
+<Warning>
+  Always restore normal operation (200) after testing to ensure accurate development data.
+</Warning>
+
+## Use Cases
+
+- **QA Testing**: Validate error handling before production deployment
+- **UI/UX Design**: Review error feedback designs across different states
+- **Training**: Demonstrate system resilience to stakeholders
+- **Development**: Test recovery mechanisms without backend changes
+
+## Next Steps
+
+- Learn how errors propagate through the app in [Network Auditing](/development/network-auditing)
+- Review the complete error response matrix
+- Implement custom error handlers for new features

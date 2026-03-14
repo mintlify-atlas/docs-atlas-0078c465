@@ -1,0 +1,185 @@
+---
+title: Development Setup
+description: Configure your local development environment for APM Enterprise
+---
+
+## Prerequisites
+
+Before setting up the development environment, ensure you have the following installed:
+
+- Node.js (v18 or higher)
+- npm or yarn package manager
+- Git for version control
+
+## Installation
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/your-org/apm-enterprise.git
+    cd apm-enterprise
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    ```
+
+    The project uses the following core dependencies:
+    - **React 18.2** - UI framework
+    - **Vite 5.2** - Build tool and dev server
+    - **TailwindCSS 4.2** - Utility-first CSS framework
+    - **Lucide React** - Icon system
+  </Step>
+
+  <Step title="Start the development server">
+    ```bash
+    npm run dev
+    ```
+
+    The application will be available at `http://localhost:5173`
+  </Step>
+</Steps>
+
+<Note>
+  The dev server uses Vite's Hot Module Replacement (HMR) for instant feedback during development.
+</Note>
+
+## Project Structure
+
+APM Enterprise follows a **Separation of Concerns (SoC)** architecture with three distinct layers:
+
+```
+src/
+├── components/          # Presentation Layer (UI)
+│   ├── Layout.jsx       # Main application shell
+│   ├── ErrorModal.jsx   # Error feedback system
+│   ├── Button.jsx       # Atomic components
+│   └── ...
+├── pages/               # Page-level components
+│   ├── DashboardPage.jsx
+│   ├── UsersPage.jsx
+│   └── ProjectsPage.jsx
+├── services/            # Infrastructure Layer (Data)
+│   ├── httpClient.js    # Centralized HTTP client
+│   ├── apiClient.js     # JSONPlaceholder integration
+│   └── api.js           # Internal API methods
+├── hooks/               # Business Logic Layer
+│   └── useUsers.js      # Custom hooks
+└── utils/               # Utility functions
+    └── cn.js            # Class name utilities
+```
+
+### Layer Responsibilities
+
+**Presentation Layer** (`components/`, `pages/`)
+- Renders UI elements
+- Handles user interactions
+- No direct API calls
+
+**Business Logic Layer** (`hooks/`)
+- Manages state
+- Orchestrates data fetching
+- Implements business rules
+
+**Infrastructure Layer** (`services/`)
+- HTTP communication
+- API integration
+- Response normalization
+
+## Configuration Files
+
+### Vite Configuration
+
+The project uses a minimal Vite setup in `vite.config.js`:
+
+```javascript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+})
+```
+
+### Tailwind Configuration
+
+Custom theme configuration in `tailwind.config.js`:
+
+```javascript
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          DEFAULT: "#B2914B",
+          foreground: "#FFFFFF",
+        },
+        background: "#FDF8F1",
+        accent: "#E5C07B",
+        muted: "#F5E6CA",
+        obsidian: "#1C1917",
+      },
+      fontFamily: {
+        sans: ["Be Vietnam Pro", "sans-serif"],
+      },
+    },
+  },
+}
+```
+
+<Info>
+  The color scheme follows an enterprise-grade design system with warm, professional tones.
+</Info>
+
+## Available Scripts
+
+The `package.json` defines the following commands:
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server with HMR |
+| `npm run build` | Build production bundle |
+| `npm run preview` | Preview production build locally |
+
+## HTTP Client Setup
+
+The application uses a centralized HTTP client (`src/services/httpClient.js`) for all API communication:
+
+```javascript
+const BASE_URL = "https://api.apm-enterprise.com/v1";
+
+const getHeaders = (extraHeaders = {}) => ({
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer demo-token',
+  ...extraHeaders,
+});
+
+export const httpClient = {
+  async get(endpoint, options = {}) {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'GET',
+      headers: getHeaders(options.headers),
+    });
+    return handleResponse(response);
+  },
+  // ... other methods
+};
+```
+
+<Warning>
+  The demo token is for development only. In production, implement proper authentication flow.
+</Warning>
+
+## Next Steps
+
+Once your environment is set up:
+
+1. Explore the [Error Simulation](/development/error-simulation) panel for testing
+2. Learn about [Network Auditing](/development/network-auditing) protocols
+3. Review the component documentation for UI customization

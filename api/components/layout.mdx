@@ -1,0 +1,149 @@
+---
+title: 'Layout'
+description: 'Main application layout component with sidebar navigation and header'
+icon: 'layout-dashboard'
+---
+
+## Overview
+
+The `Layout` component provides the main application structure with a collapsible sidebar, top navigation header, and content area. It includes user profile display, navigation menu, and an error simulation panel for testing.
+
+## Import
+
+```jsx
+import { Layout } from '../components/Layout';
+```
+
+## Props
+
+<ParamField path="children" type="React.ReactNode" required>
+  The main content to be rendered in the layout's content area
+</ParamField>
+
+<ParamField path="user" type="object">
+  User object containing profile information
+  
+  ```typescript
+  {
+    name: string;    // User's display name
+    role: string;    // User role (e.g., "Engineering Lead", "admin", "developer")
+  }
+  ```
+</ParamField>
+
+<ParamField path="activeTab" type="string">
+  Currently active navigation tab. Possible values:
+  - `"dashboard"` - Dashboard view
+  - `"projects"` - Projects view
+  - `"users"` - Users view
+</ParamField>
+
+<ParamField path="setTab" type="function">
+  Callback function to change the active tab
+  
+  ```typescript
+  (tabName: string) => void
+  ```
+</ParamField>
+
+## Features
+
+### Collapsible Sidebar
+
+The sidebar can be collapsed to save screen space. When collapsed:
+- Width reduces to 80px
+- Labels are hidden
+- Tooltips appear on hover
+- Logo size adjusts automatically
+
+### Navigation Items
+
+The sidebar includes three main navigation items:
+- **Dashboard** - Overview and statistics
+- **Proyectos** - Project management
+- **Usuarios** - User management
+
+### Error Simulation Panel
+
+A special panel for testing error handling:
+- **500** - Server error simulation
+- **401** - Unauthorized access simulation
+- **404** - Not found simulation
+- **200** - Reset to normal state
+
+This panel uses `window.setSimulatedError()` to trigger error states.
+
+### User Profile Display
+
+The header shows:
+- User avatar (generated from DiceBear API)
+- User name
+- Translated role name (Spanish)
+
+## Usage Example
+
+```jsx
+import { Layout } from '../components/Layout';
+import { useState } from 'react';
+
+function App() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const user = {
+    name: 'Wilber Huaman',
+    role: 'Engineering Lead'
+  };
+
+  return (
+    <Layout 
+      user={user} 
+      activeTab={activeTab} 
+      setTab={setActiveTab}
+    >
+      <div className="space-y-8">
+        <h1>Dashboard Content</h1>
+        {/* Your page content here */}
+      </div>
+    </Layout>
+  );
+}
+```
+
+## Role Translation
+
+The component automatically translates role names to Spanish:
+
+<Tabs>
+  <Tab title="English → Spanish">
+    - `"Engineering Lead"` → `"Líder de Ingeniería"`
+    - `"admin"` → `"Administrador de Sistemas"`
+    - `"developer"` → `"Desarrollador General"`
+  </Tab>
+  <Tab title="Default">
+    If no translation is found, the original role name is displayed
+  </Tab>
+</Tabs>
+
+## Styling
+
+The Layout component uses:
+- **Primary color** for sidebar background
+- **White** for main content area
+- **Smooth transitions** for collapse/expand animations
+- **Shadow effects** for depth
+- **Responsive design** - sidebar hidden on mobile (`lg:flex`)
+
+## Navigation Structure
+
+```jsx
+// src/components/Layout.jsx:17
+<Layout 
+  children={content}
+  user={userData}
+  activeTab="dashboard"
+  setTab={(tab) => console.log('Navigate to:', tab)}
+>
+```
+
+## Related Components
+
+- `NavItem` - Internal component for sidebar navigation items

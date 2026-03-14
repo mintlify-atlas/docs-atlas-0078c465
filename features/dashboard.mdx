@@ -1,0 +1,281 @@
+---
+title: 'Dashboard Overview'
+description: 'Your central command center for monitoring key performance indicators and managing projects'
+icon: 'gauge'
+---
+
+# Dashboard Overview
+
+The APM Enterprise Dashboard serves as your primary interface for monitoring business metrics, managing projects, and accessing key system features. The dashboard provides real-time insights into revenue, user growth, and operational efficiency.
+
+## Accessing the Dashboard
+
+<Steps>
+  <Step title="Navigate to Login">
+    When you first access APM Enterprise, you'll see the **Acceso Corporativo** (Corporate Access) login screen with the APM logo prominently displayed.
+    
+    The login card features:
+    - APM Enterprise logo
+    - Heading: "Acceso Corporativo"
+    - Subtitle: "Ecosistema de Ingeniería" (Engineering Ecosystem)
+    - Login form with credential fields
+  </Step>
+  
+  <Step title="Enter Credentials">
+    Provide your corporate credentials:
+    
+    - **Correo Institucional** (Institutional Email): Your corporate email address (e.g., `usuario@apm-enterprise.com`)
+    - **Clave de Auditoría** (Audit Key): Your secure password
+    
+    ```jsx
+    // Source: DashboardPage.jsx:57-74
+    <form onSubmit={dash.onLogin}>
+      <TextField
+        label="Correo Institucional"
+        value={dash.email}
+        onChange={dash.setEmail}
+        placeholder="usuario@apm-enterprise.com"
+      />
+      <TextField
+        label="Clave de Auditoría"
+        type="password"
+        value={dash.pass}
+        onChange={dash.setPass}
+      />
+    </form>
+    ```
+  </Step>
+  
+  <Step title="Submit Login">
+    Click the **"Iniciar Protocolo"** (Initiate Protocol) button to authenticate and access the dashboard.
+  </Step>
+</Steps>
+
+<Note>
+The login screen displays "APM Elite v5 • Professional System" at the bottom, indicating the current system version.
+</Note>
+
+## Dashboard Layout
+
+Once authenticated, you'll see a personalized welcome message: **"Bienvenido al ecosistema APM, [Your Name]"**
+
+### Header Section
+
+The dashboard header includes:
+- **Title**: "Panel de Control" (Control Panel)
+- **Welcome Message**: Displays your name from the user profile
+- **Refresh Button**: Updates all dashboard data in real-time
+
+```jsx
+// Source: DashboardPage.jsx:94-111
+<div className="flex items-center justify-between">
+  <div>
+    <h1>Panel de Control</h1>
+    <p>Bienvenido al ecosistema APM, {dash.data?.me?.name}</p>
+  </div>
+  <Button onClick={() => dash.load()} disabled={dash.loading}>
+    <RefreshCw /> Actualizar
+  </Button>
+</div>
+```
+
+## Key Performance Indicators (KPIs)
+
+The dashboard displays three primary KPI cards in a responsive grid layout:
+
+<CardGroup cols={3}>
+  <Card title="Ingresos Totales" icon="dollar-sign">
+    Displays monthly revenue in local currency format (PEN)
+    
+    **Metric**: `dash.data.stats.revenue`
+    
+    **Format**: Currency with two decimal places
+    
+    **Hint**: "Mensual" (Monthly)
+  </Card>
+  
+  <Card title="Nuevos Usuarios" icon="users">
+    Shows the count of new users registered in the system
+    
+    **Metric**: `dash.data.stats.newUsers`
+    
+    **Format**: Integer count
+    
+    **Hint**: "Últimos 7 días" (Last 7 days)
+  </Card>
+  
+  <Card title="Tasa de Abandono" icon="trending-up">
+    Displays customer churn rate as a percentage
+    
+    **Metric**: `dash.data.stats.churn`
+    
+    **Format**: Percentage (rounded)
+    
+    **Hint**: "Retención" (Retention)
+  </Card>
+</CardGroup>
+
+```jsx
+// Source: DashboardPage.jsx:113-132
+<StatCard
+  title="Ingresos Totales"
+  value={money(dash.data.stats.revenue)}
+  hint="Mensual"
+  icon={<DollarSign size={24} />}
+/>
+<StatCard
+  title="Nuevos Usuarios"
+  value={String(dash.data.stats.newUsers)}
+  hint="Últimos 7 días"
+  icon={<Users size={24} />}
+/>
+<StatCard
+  title="Tasa de Abandono"
+  value={`${Math.round(dash.data.stats.churn * 100)}%`}
+  hint="Retención"
+  icon={<TrendingUp size={24} />}
+/>
+```
+
+<Note type="info">
+These KPI values are automatically calculated by the backend and refreshed when you click the **Actualizar** button or when the dashboard loads.
+</Note>
+
+## Project List View
+
+The main section displays a comprehensive list of your projects with filtering capabilities.
+
+### Features
+
+<Tabs>
+  <Tab title="Project Listing">
+    The **"Listado de Proyectos"** section shows up to 5 projects with:
+    
+    - **Project Name**: Displayed in bold, large font
+    - **Owner**: Small caps text showing the project leader
+    - **Status Badge**: Color-coded indicator
+      - 🟢 **Active** (Activo): Green background with green dot
+      - 🟡 **Paused** (Pausado): Yellow/amber background with amber dot
+    - **Interactive Selection**: Click to select, double-click to deselect
+    
+    ```jsx
+    // Source: DashboardPage.jsx:166-200
+    dash.filteredProjects.slice(0, 5).map((p) => (
+      <button
+        onClick={() => dash.setSelectedId(p.id)}
+        onDoubleClick={() => dash.setSelectedId(null)}
+      >
+        <span>{p.owner}</span>
+        <span>{p.name}</span>
+        <Badge variant={p.status === "active" ? "success" : "warn"}>
+          {p.status === "active" ? "Activo" : "Pausado"}
+        </Badge>
+      </button>
+    ))
+    ```
+  </Tab>
+  
+  <Tab title="Status Filtering">
+    Use the dropdown filter to view projects by status:
+    
+    - **Todos** (All): Show all projects regardless of status
+    - **Activo** (Active): Show only active projects
+    - **Pausado** (Paused): Show only paused projects
+    
+    The filter is located in the header of the project list card.
+    
+    ```jsx
+    // Source: DashboardPage.jsx:142-151
+    <Select
+      value={dash.statusFilter}
+      onChange={dash.setStatusFilter}
+      options={[
+        { value: "all", label: "Todos" },
+        { value: "active", label: "Activo" },
+        { value: "paused", label: "Pausado" },
+      ]}
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Project Details">
+    When you select a project, a detailed sidebar appears on the right showing:
+    
+    - **Project Name**: Large, bold heading
+    - **Project ID**: Unique identifier in small text
+    - **Responsable** (Owner): Project leader name
+    - **Estado Actual** (Current Status): Badge with status
+    - **Presupuesto** (Budget): Formatted currency value in primary color
+    - **Edit Button**: Opens the project form for editing
+    
+    The details panel includes an inspirational quote from APM Enterprise Engineering about software architecture.
+    
+    ```jsx
+    // Source: DashboardPage.jsx:249-276
+    <Card variant="glass">
+      <h2>{dash.selected.name}</h2>
+      <p>ID: {dash.selected.id}</p>
+      <DetailItem label="Responsable" value={dash.selected.owner} />
+      <DetailItem label="Estado Actual" value={<Badge>{status}</Badge>} />
+      <DetailItem label="Presupuesto" value={money(dash.selected.budget)} />
+    </Card>
+    ```
+  </Tab>
+</Tabs>
+
+## Loading States
+
+The dashboard provides visual feedback during data loading:
+
+- **Synchronizing**: Displays a spinning refresh icon with "Sincronizando..." text
+- **Empty State**: Shows a briefcase icon with "Sin proyectos" message when no projects exist
+
+```jsx
+// Source: DashboardPage.jsx:155-164
+{dash.loading && !dash.data ? (
+  <div className="flex flex-col items-center justify-center py-10">
+    <RefreshCw size={20} className="animate-spin" />
+    <p>Sincronizando...</p>
+  </div>
+) : dash.filteredProjects.length === 0 ? (
+  <div className="flex flex-col items-center justify-center py-10">
+    <Briefcase size={28} className="opacity-20" />
+    <p>Sin proyectos</p>
+  </div>
+)}
+```
+
+## Error Handling
+
+When network or authentication errors occur, a prominent red alert banner appears at the top:
+
+- **Title**: "Anomalía de Red Detectada" (Network Anomaly Detected)
+- **Error Message**: Specific error description
+- **Error Code**: HTTP status code (e.g., 401, 404, 500)
+- **Visual Indicator**: Pulsing white dot for attention
+
+```jsx
+// Source: DashboardPage.jsx:86-93
+{dash.err && (
+  <div className="rounded-xl bg-red-500 text-white p-4 animate-shake">
+    <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+    <p>Anomalía de Red Detectada: {dash.err.message} (Cod: {dash.err.status})</p>
+  </div>
+)}
+```
+
+<Note type="warning">
+If you see error code **401**, your session may have expired. Please log in again.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Create Projects" icon="folder-plus" href="/features/project-management">
+    Learn how to create and manage projects from the dashboard
+  </Card>
+  
+  <Card title="Track KPIs" icon="chart-line" href="/features/kpi-tracking">
+    Understand how KPIs are calculated and monitored
+  </Card>
+</CardGroup>

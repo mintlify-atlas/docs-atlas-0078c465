@@ -1,80 +1,266 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quickstart Guide"
+description: "Get APM Enterprise up and running in minutes"
 ---
 
-## Get started in three steps
+Get started with APM Enterprise, a professional-grade network auditing and enterprise management system built with React and Vite.
 
-Get your documentation site running locally and make your first customization.
+## Prerequisites
 
-### Step 1: Set up your local environment
+Before you begin, ensure you have the following installed:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+- **Node.js** 18.0 or higher
+- **npm** 8.0+ (or yarn/pnpm)
+- **Git** for cloning the repository
 
-### Step 2: Deploy your changes
+## Quick Start
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the APM Enterprise repository to your local machine:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    ```bash
+    git clone https://github.com/your-org/apm-enterprise.git
+    cd apm-enterprise
+    ```
+  </Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Install Dependencies">
+    Install the required dependencies using your preferred package manager:
 
-### Step 3: Go live
+    <CodeGroup>
+      ```bash npm
+      npm install
+      ```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+      ```bash yarn
+      yarn install
+      ```
 
-## Next steps
+      ```bash pnpm
+      pnpm install
+      ```
+    </CodeGroup>
 
-Now that you have your docs running, explore these key features:
+    The project uses the following core dependencies:
+    - **React** 18.2.0 - UI framework
+    - **Vite** 5.2.0 - Build tool and dev server
+    - **TailwindCSS** 4.2.1 - Utility-first CSS framework
+    - **Lucide React** - Icon library
+    - **Radix UI** - Accessible component primitives
+  </Step>
+
+  <Step title="Start the Development Server">
+    Launch the development server with hot-reload enabled:
+
+    ```bash
+    npm run dev
+    ```
+
+    The application will start on `http://localhost:5173` by default.
+
+    <Note>
+      Vite provides lightning-fast Hot Module Replacement (HMR) for an optimal development experience.
+    </Note>
+  </Step>
+
+  <Step title="Access the Application">
+    Open your browser and navigate to `http://localhost:5173`. You'll see the corporate authentication screen.
+  </Step>
+</Steps>
+
+## First Login
+
+When you first access APM Enterprise, you'll be greeted with the corporate authentication screen.
+
+The authentication screen includes:
+
+- **Institutional Email** field for corporate login
+- **Audit Key** (password) field for secure access
+- Clean, professional design with the APM logo
+
+```jsx src/pages/DashboardPage.jsx
+if (!dash.token) {
+    return (
+        <div className="flex min-h-[80vh] items-center justify-center p-4">
+            <Card className="w-full max-w-md p-10 text-center border-none shadow-2xl">
+                <div className="mb-8 flex justify-center">
+                    <img src="/apm.png" alt="APM Logo" className="h-16 w-auto" />
+                </div>
+                <h2 className="text-2xl font-black tracking-tight text-obsidian">
+                    Acceso Corporativo
+                </h2>
+                <p className="mt-2 text-xs text-muted-foreground">
+                    Ecosistema de Ingeniería
+                </p>
+
+                <form onSubmit={dash.onLogin} className="mt-6 space-y-4 text-left">
+                    <TextField
+                        label="Correo Institucional"
+                        value={dash.email}
+                        onChange={dash.setEmail}
+                        placeholder="usuario@apm-enterprise.com"
+                    />
+                    <TextField
+                        label="Clave de Auditoría"
+                        type="password"
+                        value={dash.pass}
+                        onChange={dash.setPass}
+                        placeholder="••••••••"
+                    />
+                    <Button type="submit" className="w-full">
+                        Iniciar Protocolo
+                    </Button>
+                </form>
+            </Card>
+        </div>
+    );
+}
+```
+
+<Tip>
+  For development purposes, the application uses a mock authentication system. Any credentials will work to access the dashboard.
+</Tip>
+
+## Main Dashboard Overview
+
+After successful authentication, you'll see the main dashboard with three key sections:
+
+### 1. Statistics Overview
+
+The dashboard displays three critical metrics at the top:
+
+- **Total Revenue** - Monthly revenue tracking
+- **New Users** - User growth over the last 7 days
+- **Churn Rate** - User retention metrics
+
+```jsx src/pages/DashboardPage.jsx
+<section className="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <StatCard
+        title="Ingresos Totales"
+        value={dash.data ? money(dash.data.stats.revenue) : "$0.00"}
+        hint="Mensual"
+        icon={<DollarSign size={24} />}
+    />
+    <StatCard
+        title="Nuevos Usuarios"
+        value={dash.data ? String(dash.data.stats.newUsers) : "0"}
+        hint="Últimos 7 días"
+        icon={<Users size={24} />}
+    />
+    <StatCard
+        title="Tasa de Abandono"
+        value={dash.data ? `${Math.round(dash.data.stats.churn * 100)}%` : "0%"}
+        hint="Retención"
+        icon={<TrendingUp size={24} />}
+    />
+</section>
+```
+
+### 2. Project Management
+
+The central area features a comprehensive project list with:
+
+- Filterable status (All, Active, Paused)
+- Project details including owner and budget
+- Interactive project selection
+- Real-time status indicators
+
+### 3. Network Engineering Panel
+
+The sidebar includes an API engineering control panel for simulating network conditions:
+
+```jsx src/components/Layout.jsx
+<div className="mt-4 space-y-2">
+    <div className="grid grid-cols-3 gap-2">
+        <button onClick={() => window.setSimulatedError(500)}>
+            500
+        </button>
+        <button onClick={() => window.setSimulatedError(401)}>
+            401
+        </button>
+        <button onClick={() => window.setSimulatedError(404)}>
+            404
+        </button>
+    </div>
+    <button onClick={() => window.setSimulatedError(null)}>
+        Restaurar (200)
+    </button>
+</div>
+```
+
+<Info>
+  The Network Engineering Panel allows you to simulate different HTTP error codes to test the application's error handling and resilience.
+</Info>
+
+## Available Scripts
+
+APM Enterprise includes the following npm scripts:
+
+<CodeGroup>
+  ```bash Development
+  npm run dev
+  ```
+
+  ```bash Production Build
+  npm run build
+  ```
+
+  ```bash Preview Production Build
+  npm run preview
+  ```
+</CodeGroup>
+
+From `package.json`:
+```json
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview"
+}
+```
+
+### Development Mode
+
+Starts the Vite development server with HMR:
+```bash
+npm run dev
+```
+
+### Production Build
+
+Creates an optimized production bundle in the `dist` directory:
+```bash
+npm run build
+```
+
+### Preview Production Build
+
+Serves the production build locally for testing:
+```bash
+npm run preview
+```
+
+## Next Steps
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Architecture" icon="building" href="/architecture/overview">
+    Learn about the layered architecture and separation of concerns
+  </Card>
+  
+  <Card title="Components" icon="puzzle-piece" href="/api/components/layout">
+    Explore the atomic component library
+  </Card>
+  
+  <Card title="API Integration" icon="plug" href="/api/http-client">
+    Understand the centralized HTTP client and API patterns
+  </Card>
+  
+  <Card title="Custom Hooks" icon="fish-hook" href="/api/use-fetch">
+    Discover the custom React hooks for data fetching and forms
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+<Warning>
+  APM Enterprise uses a mock server for development. In production, configure the API endpoints to connect to your actual backend services.
+</Warning>

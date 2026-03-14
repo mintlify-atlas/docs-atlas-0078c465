@@ -1,0 +1,358 @@
+---
+title: 'useForm'
+description: 'Custom hook for managing form state, validation, and submission in APM Enterprise applications'
+---
+
+## Overview
+
+The `useForm` hook provides a complete form management solution with built-in validation, error handling, and submission state management. It simplifies complex form logic and provides a clean API for form interactions.
+
+## Function Signature
+
+```javascript
+function useForm(initialValues = {}, validate)
+```
+
+## Parameters
+
+<ParamField path="initialValues" type="object" default="{}">
+  Initial values for the form fields.
+  
+  ```javascript
+  const initialValues = {
+    name: "",
+    owner: "",
+    budget: "0",
+    status: "active"
+  }
+  ```
+</ParamField>
+
+<ParamField path="validate" type="function">
+  Optional validation function that receives form values and returns an object with error messages.
+  
+  ```javascript
+  const validate = (values) => {
+    const errors = {};
+    if (values.name?.trim().length < 3) {
+      errors.name = "Minimum 3 characters";
+    }
+    return errors;
+  }
+  ```
+  
+  The validation function should return an object where:
+  - Keys match field names
+  - Values are error messages (or `null` if valid)
+</ParamField>
+
+## Return Values
+
+<ResponseField name="values" type="object">
+  Current form values object containing all field values.
+  
+  ```javascript
+  { name: "Project Alpha", owner: "John", budget: "5000" }
+  ```
+</ResponseField>
+
+<ResponseField name="errors" type="object">
+  Object containing validation errors for each field.
+  
+  ```javascript
+  { name: null, owner: "Owner too short", budget: "Must be number" }
+  ```
+</ResponseField>
+
+<ResponseField name="isSubmitting" type="boolean">
+  Indicates whether the form is currently being submitted. Useful for disabling submit buttons.
+</ResponseField>
+
+<ResponseField name="onChange" type="function">
+  Function to update a field value and trigger validation.
+  
+  ```javascript
+  onChange(fieldName, newValue)
+  ```
+  
+  **Parameters:**
+  - `name` (string): The field name to update
+  - `value` (any): The new value for the field
+</ResponseField>
+
+<ResponseField name="reset" type="function">
+  Resets the form to initial values and clears all errors and submission state.
+  
+  ```javascript
+  reset(); // Resets to initialValues
+  ```
+</ResponseField>
+
+<ResponseField name="onSubmit" type="function">
+  Form submission handler that validates and executes a callback.
+  
+  ```javascript
+  onSubmit(event, callback)
+  ```
+  
+  **Parameters:**
+  - `event` (Event): Form submit event (optional)
+  - `callback` (function): Async function to execute with form values
+  
+  **Behavior:**
+  1. Prevents default form submission
+  2. Runs validation if validator provided
+  3. Stops if validation fails
+  4. Sets `isSubmitting` to `true`
+  5. Calls callback with current values
+  6. Sets `isSubmitting` to `false` when complete
+</ResponseField>
+
+<ResponseField name="setValues" type="function">
+  Directly set multiple form values at once.
+  
+  ```javascript
+  setValues({ name: "New Name", owner: "New Owner" });
+  ```
+</ResponseField>
+
+<ResponseField name="setErrors" type="function">
+  Manually set form errors.
+  
+  ```javascript
+  setErrors({ name: "Custom error message" });
+  ```
+</ResponseField>
+
+## Usage Examples
+
+### Basic Form
+
+```javascript
+import { useForm } from "../hooks/useForm";
+
+function ContactForm() {
+  const { values, errors, onChange, onSubmit, isSubmitting } = useForm(
+    { name: "", email: "" }
+  );
+
+  const handleSubmit = async (formValues) => {
+    await apiSendMessage(formValues);
+    alert("Message sent!");
+  };
+
+  return (
+    <form onSubmit={(e) => onSubmit(e, handleSubmit)}>
+      <input
+        value={values.name}
+        onChange={(e) => onChange("name", e.target.value)}
+      />
+      <input
+        value={values.email}
+        onChange={(e) => onChange("email", e.target.value)}
+      />
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Sending..." : "Send"}
+      </button>
+    </form>
+  );
+}
+```
+
+### Form with Validation
+
+```javascript
+function ProjectForm() {
+  const validate = (values) => {
+    const errors = {};
+    
+    if (values.name !== undefined) {
+      errors.name = values.name.trim().length < 3 
+        ? "Minimum 3 characters" 
+        : null;
+    }
+    
+    if (values.budget !== undefined) {
+      errors.budget = isNaN(Number(values.budget)) 
+        ? "Must be a number" 
+        : null;
+    }
+    
+    return errors;
+  };
+
+  const { values, errors, onChange, onSubmit, isSubmitting } = useForm(
+    { name: "", budget: "0" },
+    validate
+  );
+
+  return (
+    <form onSubmit={(e) => onSubmit(e, handleCreate)}>
+      <div>
+        <input
+          value={values.name}
+          onChange={(e) => onChange("name", e.target.value)}
+        />
+        {errors.name && <span className="error">{errors.name}</span>}
+      </div>
+      
+      <div>
+        <input
+          value={values.budget}
+          onChange={(e) => onChange("budget", e.target.value)}
+        />
+        {errors.budget && <span className="error">{errors.budget}</span>}
+      </div>
+      
+      <button type="submit" disabled={isSubmitting}>
+        Create Project
+      </button>
+    </form>
+  );
+}
+```
+
+### With Custom Components
+
+```javascript
+import { TextField } from "../components/TextField";
+
+function SignupForm() {
+  const validate = (values) => ({
+    email: values.email?.includes("@") ? null : "Invalid email",
+    password: values.password?.length >= 8 ? null : "Min 8 characters"
+  });
+
+  const { values, errors, onChange, onSubmit, reset } = useForm(
+    { email: "", password: "" },
+    validate
+  );
+
+  const handleSignup = async (formValues) => {
+    await apiSignup(formValues);
+    reset(); // Clear form after successful signup
+  };
+
+  return (
+    <form onSubmit={(e) => onSubmit(e, handleSignup)}>
+      <TextField
+        label="Email"
+        value={values.email}
+        onChange={(val) => onChange("email", val)}
+        error={errors.email}
+      />
+      <TextField
+        label="Password"
+        type="password"
+        value={values.password}
+        onChange={(val) => onChange("password", val)}
+        error={errors.password}
+      />
+      <button type="submit">Sign Up</button>
+    </form>
+  );
+}
+```
+
+### Real-World Example: Edit Mode
+
+```javascript
+function EditableProjectForm({ project }) {
+  const validate = (values) => ({
+    name: values.name?.trim().length < 3 ? "Min 3 chars" : null,
+    owner: values.owner?.trim().length < 2 ? "Owner too short" : null
+  });
+
+  const { 
+    values, 
+    errors, 
+    onChange, 
+    onSubmit, 
+    reset, 
+    setValues 
+  } = useForm(
+    { name: "", owner: "", status: "active" },
+    validate
+  );
+
+  // Load project data for editing
+  useEffect(() => {
+    if (project) {
+      setValues({
+        name: project.name,
+        owner: project.owner,
+        status: project.status
+      });
+    }
+  }, [project]);
+
+  const handleUpdate = async (formValues) => {
+    await apiUpdateProject(project.id, formValues);
+    alert("Updated!");
+  };
+
+  const handleCancel = () => {
+    reset();
+  };
+
+  return (
+    <form onSubmit={(e) => onSubmit(e, handleUpdate)}>
+      <TextField
+        label="Project Name"
+        value={values.name}
+        onChange={(val) => onChange("name", val)}
+        error={errors.name}
+      />
+      <TextField
+        label="Owner"
+        value={values.owner}
+        onChange={(val) => onChange("owner", val)}
+        error={errors.owner}
+      />
+      <button type="submit">Save Changes</button>
+      <button type="button" onClick={handleCancel}>Cancel</button>
+    </form>
+  );
+}
+```
+
+## Validation Behavior
+
+### Field-Level Validation
+
+Validation runs automatically when a field changes via `onChange`:
+
+```javascript
+onChange("name", "ab"); // Triggers validation for 'name' field only
+```
+
+### Form-Level Validation
+
+Full form validation runs on submit before the callback executes:
+
+```javascript
+onSubmit(event, async (values) => {
+  // Only called if ALL fields pass validation
+  await saveData(values);
+});
+```
+
+If any field has an error, the callback is **not** executed.
+
+## Best Practices
+
+<Tip>
+  Use the `isSubmitting` state to disable submit buttons and prevent duplicate submissions.
+</Tip>
+
+<Warning>
+  Validation functions should be memoized with `useCallback` or defined outside the component to prevent unnecessary re-validation.
+</Warning>
+
+<Tip>
+  Return `null` for valid fields in your validation function, not `undefined` or empty strings.
+</Tip>
+
+<Note>
+  The `onChange` function uses `useCallback` internally, so it's safe to pass directly to child components without causing re-renders.
+</Note>

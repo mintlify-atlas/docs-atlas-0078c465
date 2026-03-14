@@ -1,0 +1,237 @@
+---
+title: 'Cards'
+description: 'Card and StatCard components for content containers'
+icon: 'square'
+---
+
+## Card
+
+A versatile container component with multiple visual variants for displaying grouped content.
+
+### Import
+
+```jsx
+import { Card } from '../components/Card';
+```
+
+### Props
+
+<ParamField path="children" type="React.ReactNode" required>
+  Content to be displayed inside the card
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes to apply to the card
+</ParamField>
+
+<ParamField path="variant" type="string" default="default">
+  Visual style variant of the card:
+  - `"default"` - White background with subtle shadow
+  - `"glass"` - Frosted glass effect with backdrop blur
+  - `"primary"` - Primary color background with white text
+</ParamField>
+
+### Variant Styles
+
+<Tabs>
+  <Tab title="default">
+    ```jsx
+    <Card variant="default">
+      <p>Standard white card with shadow</p>
+    </Card>
+    ```
+    - Background: `bg-white`
+    - Border: `border-muted/30`
+    - Shadow: `shadow-sm`
+  </Tab>
+  <Tab title="glass">
+    ```jsx
+    <Card variant="glass">
+      <p>Translucent card with blur effect</p>
+    </Card>
+    ```
+    - Background: `bg-white/60`
+    - Backdrop: `backdrop-blur-lg`
+    - Border: `border-white/40`
+    - Shadow: `shadow-lg`
+  </Tab>
+  <Tab title="primary">
+    ```jsx
+    <Card variant="primary">
+      <p>Branded card with primary color</p>
+    </Card>
+    ```
+    - Background: `bg-primary`
+    - Text: `text-white`
+    - Shadow: `shadow-xl shadow-primary/20`
+  </Tab>
+</Tabs>
+
+### Usage Examples
+
+<Tabs>
+  <Tab title="Basic Card">
+    ```jsx
+    // src/pages/DashboardPage.jsx:136
+    <Card className="p-0 border-none shadow-sm ring-1 ring-muted/20">
+      <div className="flex items-center justify-between p-6">
+        <h2 className="text-2xl font-black">Listado de Proyectos</h2>
+      </div>
+      <div className="p-6">
+        {/* Project list content */}
+      </div>
+    </Card>
+    ```
+  </Tab>
+  <Tab title="Glass Card">
+    ```jsx
+    // src/pages/ProjectsPage.jsx:107
+    <Card variant="glass" className="sticky top-28">
+      <div className="space-y-6">
+        <h2 className="text-3xl font-black">Project Details</h2>
+        <p>Translucent overlay effect</p>
+      </div>
+    </Card>
+    ```
+  </Tab>
+  <Tab title="Form Container">
+    ```jsx
+    // src/pages/DashboardPage.jsx:205
+    <Card className="bg-primary/5 border-dashed border-2">
+      <h2 className="font-black text-primary">New Project</h2>
+      <form className="space-y-6">
+        {/* Form fields */}
+      </form>
+    </Card>
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## StatCard
+
+A specialized card component for displaying statistics with an icon, title, value, and optional hint.
+
+### Import
+
+```jsx
+import { StatCard } from '../components/StatCard';
+```
+
+### Props
+
+<ParamField path="title" type="string" required>
+  Label describing the statistic (e.g., "Total Revenue", "New Users")
+</ParamField>
+
+<ParamField path="value" type="string" required>
+  The main statistic value to display (e.g., "$45,231", "156", "23%")
+</ParamField>
+
+<ParamField path="hint" type="string">
+  Additional context or timeframe for the statistic (e.g., "Monthly", "Last 7 days")
+</ParamField>
+
+<ParamField path="icon" type="React.ReactNode" required>
+  Icon element to display (typically from lucide-react)
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes to apply
+</ParamField>
+
+### Features
+
+- **Icon Container**: 48px square with primary color tint, scales on hover
+- **Hint Badge**: Small uppercase label with muted styling
+- **Large Value**: 3xl font size, black color, tracking-tight
+- **Background Pattern**: Subtle decorative pattern in bottom-right
+- **Hover Effect**: Icon scales to 110% on card hover
+
+### Usage Example
+
+```jsx
+// src/pages/DashboardPage.jsx:113-131
+import { StatCard } from '../components/StatCard';
+import { DollarSign, Users, TrendingUp } from 'lucide-react';
+
+function Dashboard({ stats }) {
+  return (
+    <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <StatCard
+        title="Ingresos Totales"
+        value={money(stats.revenue)}
+        hint="Mensual"
+        icon={<DollarSign size={24} />}
+      />
+      <StatCard
+        title="Nuevos Usuarios"
+        value={String(stats.newUsers)}
+        hint="Últimos 7 días"
+        icon={<Users size={24} />}
+      />
+      <StatCard
+        title="Tasa de Abandono"
+        value={`${Math.round(stats.churn * 100)}%`}
+        hint="Retención"
+        icon={<TrendingUp size={24} />}
+      />
+    </section>
+  );
+}
+```
+
+### Visual Structure
+
+```
+┌──────────────────────────────┐
+│  [Icon]         [Hint Badge] │
+│                              │
+│  Title (small, muted)        │
+│  VALUE (large, bold)         │
+│                      [pattern]│
+└──────────────────────────────┘
+```
+
+### Styling Details
+
+- **Card Base**: Extends `Card` component with default variant
+- **Icon Box**: `h-12 w-12`, `rounded-2xl`, `bg-primary/10`
+- **Title**: `text-sm`, `text-muted-foreground`
+- **Value**: `text-3xl`, `font-black`, `text-obsidian`
+- **Hint**: `text-[10px]`, uppercase, `bg-muted/20`
+
+## Common Patterns
+
+<Tabs>
+  <Tab title="Dashboard Stats">
+    Use `StatCard` in a grid layout for KPI display:
+    ```jsx
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <StatCard {...stat1} />
+      <StatCard {...stat2} />
+      <StatCard {...stat3} />
+    </div>
+    ```
+  </Tab>
+  <Tab title="Content Section">
+    Use `Card` for grouped content:
+    ```jsx
+    <Card className="p-8">
+      <h3 className="text-xl font-black mb-4">Section Title</h3>
+      <div className="space-y-4">
+        {/* Content */}
+      </div>
+    </Card>
+    ```
+  </Tab>
+  <Tab title="Sticky Sidebar">
+    Use `Card` with glass variant for sidebars:
+    ```jsx
+    <Card variant="glass" className="sticky top-28">
+      {/* Sidebar content */}
+    </Card>
+    ```
+  </Tab>
+</Tabs>

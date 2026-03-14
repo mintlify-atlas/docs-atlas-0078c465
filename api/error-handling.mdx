@@ -1,0 +1,283 @@
+---
+title: 'Error Handling'
+description: 'HTTP error handling and response processing'
+icon: 'triangle-exclamation'
+---
+
+## Overview
+
+The HTTP client implements centralized error handling through the `handleResponse()` function, which processes all API responses and manages error conditions consistently.
+
+## handleResponse Function
+
+The `handleResponse()` function is the core error handler for all HTTP requests.
+
+### Implementation
+
+```javascript
+async function handleResponse(response) {
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const error = new Error(errorData.message || "Error de comunicación con el servidor");
+        error.status = response.status;
+        throw error;
+    }
+    return response.json();
+}
+```
+
+**Location:** `src/services/httpClient.js:3`
+
+### Function Flow
+
+1. **Check Response Status**: Evaluates `response.ok` (status in range 200-299)
+2. **Parse Error Data**: Attempts to extract JSON error details from response
+3. **Create Error Object**: Constructs an Error with message and status code
+4. **Throw Error**: Propagates error to caller for handling
+5. **Return Success**: If response is OK, parse and return JSON data
+
+## Error Object Structure
+
+When an error occurs, the thrown Error object contains:
+
+<ResponseField name="message" type="string">
+  Human-readable error message. Uses `errorData.message` from server if available, otherwise defaults to "Error de comunicación con el servidor"
+</ResponseField>
+
+<ResponseField name="status" type="number">
+  HTTP status code from the response (e.g., 400, 401, 404, 500)
+</ResponseField>
+
+### Example Error Object
+
+```javascript
+{
+  message: "Project not found",
+  status: 404,
+  name: "Error",
+  stack: "Error: Project not found\n    at handleResponse..."
+}
+```
+
+## HTTP Status Code Handling
+
+The error handler manages all non-2xx status codes:
+
+### Client Errors (4xx)
+
+<ResponseField name="400" type="Bad Request">
+  Invalid request parameters or malformed data
+</ResponseField>
+
+<ResponseField name="401" type="Unauthorized">
+  Missing or invalid authentication token
+</ResponseField>
+
+<ResponseField name="403" type="Forbidden">
+  Valid authentication but insufficient permissions
+</ResponseField>
+
+<ResponseField name="404" type="Not Found">
+  Requested resource does not exist
+</ResponseField>
+
+### Server Errors (5xx)
+
+<ResponseField name="500" type="Internal Server Error">
+  Unexpected server-side error occurred
+</ResponseField>
+
+<ResponseField name="502" type="Bad Gateway">
+  Invalid response from upstream server
+</ResponseField>
+
+<ResponseField name="503" type="Service Unavailable">
+  Server temporarily unable to handle request
+</ResponseField>
+
+## Error Propagation Pattern
+
+Errors are propagated through the call stack for handling at the appropriate level:
+
+### Pattern 1: Try-Catch in API Layer
+
+```javascript
+import { httpClient } from './httpClient';
+
+export async function apiGetDashboard({ token }) {
+  try {
+    const response = await httpClient.get("/dashboard", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response;
+  } catch (error) {
+    console.error('Dashboard fetch failed:', error.message);
+    throw error; // Re-throw for UI layer
+  }
+}
+```
+
+### Pattern 2: Try-Catch in Component Layer
+
+**From `src/services/apiClient.js:6`:**
+
+```javascript
+export const apiClient = {
+  async getUsers() {
+    try {
+      const response = await fetch(`${USERS_BASE_URL}/users`);
+      if (!response.ok) {
+        const error = new Error("Error al obtener usuarios");
+        error.status = response.status;
+        throw error;
+      }
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      throw err; // Propagate to caller
+    }
+  }
+}
+```
+
+### Pattern 3: UI Error Display
+
+```javascript
+import { apiGetDashboard } from './services/api';
+
+async function loadDashboard() {
+  try {
+    const data = await apiGetDashboard({ token: userToken });
+    setDashboardData(data);
+  } catch (error) {
+    if (error.status === 401) {
+      // Handle authentication error
+      redirectToLogin();
+    } else if (error.status === 404) {
+      // Handle not found
+      showNotFound();
+    } else {
+      // Handle generic error
+      showErrorMessage(error.message);
+    }
+  }
+}
+```
+
+## Fallback Error Handling
+
+The error handler includes protection against malformed error responses:
+
+```javascript
+const errorData = await response.json().catch(() => ({}));
+```
+
+This pattern ensures:
+- If error response contains valid JSON, use its `message` field
+- If response parsing fails, default to empty object `{}`
+- Always provides fallback message: "Error de comunicación con el servidor"
+
+### Error Message Priority
+
+1. **Server-provided message**: `errorData.message` (if available)
+2. **Default fallback**: "Error de comunicación con el servidor"
+
+## Best Practices
+
+### Always Handle Errors in UI Layer
+
+```javascript
+// Good: Handle errors at UI boundary
+try {
+  const data = await httpClient.get('/projects');
+  updateUI(data);
+} catch (error) {
+  displayErrorToUser(error);
+}
+```
+
+### Check Status Codes for Specific Handling
+
+```javascript
+catch (error) {
+  switch (error.status) {
+    case 401:
+      handleUnauthorized();
+      break;
+    case 404:
+      handleNotFound();
+      break;
+    default:
+      handleGenericError(error);
+  }
+}
+```
+
+### Provide User-Friendly Messages
+
+```javascript
+catch (error) {
+  const userMessage = error.status === 404 
+    ? 'Project not found'
+    : error.message || 'An unexpected error occurred';
+  
+  showNotification(userMessage, 'error');
+}
+```
+
+### Log Errors for Debugging
+
+```javascript
+catch (error) {
+  console.error('API Error:', {
+    message: error.message,
+    status: error.status,
+    endpoint: '/projects',
+    timestamp: new Date().toISOString()
+  });
+  
+  // Then handle the error...
+}
+```
+
+## Error Response Examples
+
+### Authentication Error
+
+```json
+{
+  "message": "Invalid or expired token",
+  "status": 401
+}
+```
+
+### Validation Error
+
+```json
+{
+  "message": "Missing required field: name",
+  "status": 400
+}
+```
+
+### Resource Not Found
+
+```json
+{
+  "message": "Project with id '123' not found",
+  "status": 404
+}
+```
+
+### Server Error
+
+```json
+{
+  "message": "Error de comunicación con el servidor",
+  "status": 500
+}
+```
+
+## Source Code
+
+Location: `src/services/httpClient.js:3-11`

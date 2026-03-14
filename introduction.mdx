@@ -1,0 +1,132 @@
+---
+title: Introduction
+description: Enterprise management system for efficient project administration and KPI performance metrics tracking
+---
+
+<div style={{
+  background: 'linear-gradient(135deg, #fef9f1 0%, #f5ebe0 100%)',
+  borderRadius: '16px',
+  padding: '48px 32px',
+  marginBottom: '32px',
+  border: '1px solid #f0e6d1'
+}}>
+  <h1 style={{
+    fontFamily: 'Poppins',
+    fontWeight: 700,
+    fontSize: '36px',
+    color: '#1a1a1a',
+    marginBottom: '16px',
+    marginTop: 0
+  }}>
+    Welcome to APM Enterprise
+  </h1>
+  <p style={{
+    fontFamily: 'Poppins',
+    fontSize: '18px',
+    color: '#5c442c',
+    marginBottom: 0,
+    lineHeight: '1.6'
+  }}>
+    A professional-grade network management ecosystem designed for enterprise-level project administration and KPI performance tracking.
+  </p>
+</div>
+
+## What is APM Enterprise?
+
+APM Enterprise is a comprehensive SaaS platform built with modern React architecture, providing organizations with powerful tools to manage projects, track performance metrics, and monitor network operations in real-time.
+
+The system implements a **Separation of Concerns (SoC)** architecture pattern, dividing the application into decoupled layers that enable senior-level maintenance and scalability.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Real-time Dashboard" icon="chart-line" href="/features/dashboard">
+    Monitor KPIs, revenue metrics, user growth, and churn rates in real-time
+  </Card>
+  <Card title="Project Management" icon="briefcase" href="/features/project-management">
+    Create, track, and manage projects with budget control and status monitoring
+  </Card>
+  <Card title="User Management" icon="users" href="/features/user-management">
+    Comprehensive user administration with role-based access control
+  </Card>
+  <Card title="Network Auditing" icon="network-wired" href="/development/network-auditing">
+    Advanced error simulation and network diagnostics for engineering teams
+  </Card>
+</CardGroup>
+
+## Architecture Highlights
+
+APM Enterprise is built on three distinct architectural layers:
+
+- **Presentation Layer**: Atomic React components with no business logic coupling
+- **Business Logic Layer**: Custom React hooks for data fetching and state management
+- **Infrastructure Layer**: Centralized HTTP client with error handling and network auditing
+
+<Info>
+The system achieved a **65% reduction in code duplication** by centralizing error handling and loading states through custom hooks.
+</Info>
+
+## Built With Modern Technology
+
+- **React 18** - Latest features including concurrent rendering
+- **Vite** - Lightning-fast development and optimized production builds
+- **Tailwind CSS 4** - Utility-first styling with custom design tokens
+- **Lucide React** - Beautiful, consistent icon system
+- **Custom Hooks** - Reusable data fetching and form management patterns
+
+## Getting Started
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get APM Enterprise running in under 5 minutes
+  </Card>
+  <Card title="Installation Guide" icon="download" href="/installation">
+    Complete setup instructions and requirements
+  </Card>
+  <Card title="Architecture Overview" icon="sitemap" href="/architecture/overview">
+    Understand the system's layered architecture
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/http-client">
+    Explore the complete API documentation
+  </Card>
+</CardGroup>
+
+## Use Cases
+
+APM Enterprise is designed for organizations that need:
+
+- **Enterprise Project Tracking** - Manage multiple projects with budget oversight and status monitoring
+- **Performance Analytics** - Track KPIs including revenue, user growth, and churn metrics
+- **Network Operations** - Simulate and diagnose API errors with advanced auditing tools
+- **Team Collaboration** - User management with role-based permissions and activity tracking
+
+<Tip>
+APM Enterprise includes a unique **Network Engineering Control Panel** that allows you to simulate HTTP errors (401, 404, 500) to test application resilience.
+</Tip>
+
+## Development Philosophy
+
+The application was built through three intensive development sprints:
+
+1. **Phase 1: Refactoring & Core Structure** - Transformation from monolithic to layered architecture
+2. **Phase 2: Senior Logic & Custom Hooks** - Abstraction of asynchronous patterns and form handling
+3. **Phase 3: Premium UI & API Integrity** - Real API integration and network auditing systems
+
+Each phase focused on professional engineering standards, ensuring the codebase remains maintainable and scalable.
+
+## Next Steps
+
+<Steps>
+  <Step title="Install Dependencies">
+    Follow the [installation guide](/installation) to set up your development environment
+  </Step>
+  <Step title="Run the Application">
+    Start the development server and explore the dashboard interface
+  </Step>
+  <Step title="Explore Features">
+    Learn about [project management](/features/project-management), [KPI tracking](/features/kpi-tracking), and more
+  </Step>
+  <Step title="Review Architecture">
+    Understand the [component structure](/architecture/component-structure) and [custom hooks](/architecture/custom-hooks)
+  </Step>
+</Steps>

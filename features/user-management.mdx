@@ -1,0 +1,495 @@
+---
+title: 'User Management'
+description: 'Manage user identities, view profiles, and track access permissions across the platform'
+icon: 'users'
+---
+
+# User Management
+
+The APM Enterprise User Management system provides a comprehensive directory for managing user identities, viewing detailed profiles, and auditing access permissions across your organization's network.
+
+## User Directory Overview
+
+The **"Directorio de Usuarios"** (User Directory) serves as the central hub for identity management with the subtitle **"Gestión de Identidades de Red"** (Network Identity Management).
+
+### Accessing the User Directory
+
+Navigate to the Users page to view the complete list of registered users in your organization. The directory displays users in a clean, organized table format with powerful inspection capabilities.
+
+```jsx
+// Source: UsersPage.jsx:107-122
+<header>
+  <div>
+    <h1>Directorio de Usuarios</h1>
+    <p>Gestión de Identidades de Red</p>
+  </div>
+  <Button onClick={fetchUsers} disabled={loading}>
+    <RefreshCw /> Actualizar
+  </Button>
+</header>
+```
+
+## User List View
+
+The user directory displays comprehensive user information in a tabular format with four main columns:
+
+### Table Structure
+
+<CardGroup cols={2}>
+  <Card title="Identidad (Identity)" icon="user">
+    Displays user profile information:
+    - **Avatar**: Circular badge with user's initial
+    - **Full Name**: Bold, prominent display
+    - **Email Address**: Secondary text in muted color
+    - **Hover Effect**: Avatar changes to primary color on hover
+  </Card>
+  
+  <Card title="Organización (Organization)" icon="building">
+    Shows company affiliation:
+    - **Company Name**: Primary line in bold
+    - **Business Slogan**: Company tagline or description
+    - **Formatting**: Clean, hierarchical text display
+  </Card>
+  
+  <Card title="Dominio (Domain)" icon="globe">
+    Website information:
+    - **Website URL**: Clickable external link
+    - **External Link Icon**: Visual indicator
+    - **Link Styling**: Primary color with hover underline
+    - **Target**: Opens in new tab with security attributes
+  </Card>
+  
+  <Card title="Auditoría (Audit)" icon="shield-check">
+    Access inspection controls:
+    - **Inspeccionar Button**: Primary action button
+    - **Visual Feedback**: Hover and active states
+    - **Navigation**: Opens detailed user profile
+    - **Icon**: ChevronRight for forward action
+  </Card>
+</CardGroup>
+
+```jsx
+// Source: UsersPage.jsx:126-200
+<table className="w-full">
+  <thead>
+    <tr className="bg-muted/5 border-b">
+      <th>Identidad</th>
+      <th>Organización</th>
+      <th>Dominio</th>
+      <th className="text-right">Auditoría</th>
+    </tr>
+  </thead>
+  <tbody>
+    {paginated.map(u => (
+      <tr key={u.id} className="group hover:bg-primary/[0.03]">
+        <td>
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary">
+              {u.name.charAt(0)}
+            </div>
+            <div>
+              <p className="font-bold">{u.name}</p>
+              <p className="text-xs text-muted">{u.email}</p>
+            </div>
+          </div>
+        </td>
+        <td>
+          <p>{u.company.name}</p>
+          <p className="text-xs">{u.company.bs}</p>
+        </td>
+        <td>
+          <a href={`https://${u.website}`} target="_blank">
+            {u.website} <ExternalLink size={12} />
+          </a>
+        </td>
+        <td className="text-right">
+          <button onClick={() => setSelectedUser(u)}>
+            Inspeccionar <ChevronRight size={14} />
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+```
+
+### Pagination Controls
+
+The user list implements pagination for optimal performance:
+
+- **Page Size**: 5 users per page
+- **Page Indicator**: Shows current page and total pages ("Página X de Y")
+- **Navigation**: Left and right chevron buttons
+- **State Management**: Buttons disable at boundaries (first/last page)
+
+```jsx
+// Source: UsersPage.jsx:42-44
+const pageSize = 5;
+const totalPages = Math.ceil(filtered.length / pageSize);
+const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+// Pagination UI (UsersPage.jsx:203-223)
+<div className="p-6 border-t flex items-center justify-between">
+  <p>Página {page} de {totalPages || 1}</p>
+  <div className="flex gap-2">
+    <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+      <ChevronLeft size={18} />
+    </button>
+    <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+      <ChevronRight size={18} />
+    </button>
+  </div>
+</div>
+```
+
+## User Profile Details
+
+Clicking the **"Inspeccionar"** button on any user opens a comprehensive profile view with detailed information and access audit data.
+
+### Profile Layout
+
+<Steps>
+  <Step title="Profile Card Sidebar">
+    The left sidebar displays a visual profile card with:
+    
+    **Avatar Section**
+    - Large 128x128px avatar image
+    - Generated using DiceBear Avataaars API
+    - Rounded corners with primary border
+    - Seed based on username for consistency
+    
+    **User Information**
+    - Full name in large, bold text (3xl, black weight)
+    - Username with @ prefix in primary color
+    - Sticky positioning (top-28) for scroll persistence
+    
+    ```jsx
+    // Source: UsersPage.jsx:57-75
+    <Card variant="glass" className="sticky top-28">
+      <div className="mx-auto h-32 w-32 rounded-[2.5rem] bg-primary/10 p-1 border-2">
+        <img
+          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedUser.username}`}
+          alt="Avatar"
+          className="h-full w-full rounded-[2rem]"
+        />
+      </div>
+      <h2 className="text-3xl font-black">{selectedUser.name}</h2>
+      <p className="text-xs font-bold text-primary">@{selectedUser.username}</p>
+    </Card>
+    ```
+  </Step>
+  
+  <Step title="Contact Details">
+    Below the avatar, contact information is displayed with icons:
+    
+    <Tabs>
+      <Tab title="Email">
+        - **Icon**: Mail (14px)
+        - **Label**: "Email"
+        - **Value**: User's email address
+        - **Format**: Small, bold text
+      </Tab>
+      
+      <Tab title="Website">
+        - **Icon**: Globe (14px)
+        - **Label**: "Sitio Web" (Website)
+        - **Value**: User's website URL
+        - **Format**: Clickable link
+      </Tab>
+      
+      <Tab title="Company">
+        - **Icon**: Briefcase (14px)
+        - **Label**: "Compañía" (Company)
+        - **Value**: Company name
+        - **Format**: Text display
+      </Tab>
+    </Tabs>
+    
+    ```jsx
+    // Source: UsersPage.jsx:70-74
+    <div className="pt-4 border-t space-y-3">
+      <DetailItem icon={<Mail size={14} />} label="Email" value={selectedUser.email} />
+      <DetailItem icon={<Globe size={14} />} label="Sitio Web" value={selectedUser.website} />
+      <DetailItem icon={<Briefcase size={14} />} label="Compañía" value={selectedUser.company.name} />
+    </div>
+    ```
+  </Step>
+  
+  <Step title="Access Audit Panel">
+    The main content area displays **"Auditoría de Acceso"** (Access Audit) showing project access permissions:
+    
+    **Panel Header**
+    - **Icon**: Fingerprint icon in primary color
+    - **Title**: "Auditoría de Acceso"
+    - **Styling**: Large, bold, obsidian text
+    
+    **Project Access Rows**
+    Each project row displays:
+    - **Project Name**: Bold, large text
+    - **User Role**: Descriptive role title
+      - "Diseñador Principal" (Lead Designer)
+      - "Auditor" (Auditor)
+      - "Ingeniero de Software" (Software Engineer)
+    - **Access Status**: Badge indicator
+      - Green "Concedido" (Granted) for active access
+      - Yellow "Suspendido" (Suspended) for paused access
+    
+    ```jsx
+    // Source: UsersPage.jsx:78-88
+    <Card className="p-8">
+      <h3><Fingerprint /> Auditoría de Acceso</h3>
+      <div className="space-y-4">
+        <ProjectRow name="RV4 Enterprise" role="Diseñador Principal" status="active" />
+        <ProjectRow name="Agentes IA Core" role="Auditor" status="paused" />
+        <ProjectRow name="Portal SAP Integración" role="Ingeniero de Software" status="active" />
+      </div>
+    </Card>
+    ```
+  </Step>
+  
+  <Step title="Security Information">
+    At the bottom, a security protocol banner confirms:
+    
+    - **Icon**: ShieldCheck (32px) in primary color
+    - **Title**: "Protocolo de Seguridad" (Security Protocol)
+    - **Description**: "Usuario verificado bajo estándar AES-256 APM Enterprise"
+    - **Background**: Light primary tint with ring border
+    
+    This confirms the user's identity is secured with AES-256 encryption standards.
+    
+    ```jsx
+    // Source: UsersPage.jsx:90-98
+    <Card className="p-8 bg-primary/10">
+      <div className="flex items-center gap-4 text-primary">
+        <ShieldCheck size={32} />
+        <div>
+          <p className="text-sm font-black">Protocolo de Seguridad</p>
+          <p className="text-xs">Usuario verificado bajo estándar AES-256 APM Enterprise.</p>
+        </div>
+      </div>
+    </Card>
+    ```
+  </Step>
+</Steps>
+
+### Navigation
+
+Return to the user directory by clicking **"Volver al Listado"** (Return to List) with left arrow icon.
+
+```jsx
+// Source: UsersPage.jsx:48-54
+<button onClick={() => setSelectedUser(null)}>
+  <ArrowLeft size={16} /> Volver al Listado
+</button>
+```
+
+## Deep Audit Traceability
+
+When you click the **"Inspeccionar"** button, APM Enterprise performs a deep network audit in the background, logging detailed traceability data to the browser console.
+
+### Audit Process
+
+<Steps>
+  <Step title="Initiate Audit">
+    Clicking "Inspeccionar" triggers the audit protocol:
+    
+    ```jsx
+    // Source: UsersPage.jsx:169-191
+    onClick={async () => {
+      setSelectedUser(u);
+      try {
+        console.group(`🔍 Auditoría Técnica: Usuario [${u.id}] ${u.name}`);
+        console.log("🚀 Iniciando trazabilidad de red profunda...");
+        
+        // Fetch and log user posts
+        const posts = await apiClient.getUserPosts(u.id);
+        console.log(`📦 Posts detectados (${posts.length}):`);
+        console.table(posts.slice(0, 3));
+        
+        // Fetch and log post comments
+        if (posts.length > 0) {
+          const comments = await apiClient.getPostComments(posts[0].id);
+          console.log(`💬 Comentarios en el post insignia [${posts[0].id}]:`);
+          console.table(comments.slice(0, 3));
+        }
+        
+        console.log("✅ Trazabilidad completada con éxito.");
+        console.groupEnd();
+      } catch (err) {
+        console.warn("⚠️ Auditoría profunda limitada:", err.message);
+        console.groupEnd();
+      }
+    }}
+    ```
+  </Step>
+  
+  <Step title="Data Collection">
+    The audit collects:
+    
+    - **User Posts**: All content created by the user
+    - **Post Comments**: Comments on the user's flagship post
+    - **Activity Metrics**: Engagement and interaction data
+  </Step>
+  
+  <Step title="Console Output">
+    View detailed audit logs in the browser console:
+    
+    ```
+    🔍 Auditoría Técnica: Usuario [1] Leanne Graham
+    🚀 Iniciando trazabilidad de red profunda...
+    📦 Posts detectados (10):
+    [Table display of posts]
+    💬 Comentarios en el post insignia [1]:
+    [Table display of comments]
+    ✅ Trazabilidad completada con éxito.
+    ```
+  </Step>
+</Steps>
+
+<Note type="info">
+The deep audit feature integrates with external data sources to provide comprehensive user activity tracking. This is useful for compliance and security monitoring.
+</Note>
+
+## Role-Based Access Display
+
+The user profile shows role-based project access through the **ProjectRow** component:
+
+### Access Status Indicators
+
+<Tabs>
+  <Tab title="Active Access">
+    **Concedido** (Granted)
+    - **Badge Variant**: Success (green)
+    - **Meaning**: User has active access to the project
+    - **Display**: Green background with "Concedido" text
+    - **Use Case**: Current team members with active permissions
+  </Tab>
+  
+  <Tab title="Suspended Access">
+    **Suspendido** (Suspended)
+    - **Badge Variant**: Warning (yellow)
+    - **Meaning**: User's access is temporarily suspended
+    - **Display**: Yellow background with "Suspendido" text
+    - **Use Case**: Paused projects or temporarily revoked access
+  </Tab>
+</Tabs>
+
+```jsx
+// Source: UsersPage.jsx:240-252
+function ProjectRow({ name, role, status }) {
+  return (
+    <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/5">
+      <div className="flex flex-col">
+        <span className="text-sm font-black">{name}</span>
+        <span className="text-xs font-medium text-obsidian/60">{role}</span>
+      </div>
+      <Badge variant={status === 'active' ? 'success' : 'warn'}>
+        {status === 'active' ? 'Concedido' : 'Suspendido'}
+      </Badge>
+    </div>
+  );
+}
+```
+
+## Data Integration
+
+APM Enterprise integrates with external data sources for user information:
+
+### User Data Source
+
+The system fetches user data from external APIs using the `useUsers` hook and `apiClient`:
+
+```jsx
+// Source: UsersPage.jsx:19-20, 27
+import { useUsers } from "../hooks/useUsers";
+import { apiClient } from "../services/apiClient";
+
+const { users, loading, error, fetchUsers } = useUsers();
+```
+
+### Avatar Generation
+
+User avatars are dynamically generated using the DiceBear API:
+
+- **Service**: DiceBear Avataaars API v7
+- **URL Pattern**: `https://api.dicebear.com/7.x/avataaars/svg?seed={username}`
+- **Seed**: Based on username for consistency
+- **Format**: SVG for crisp display at any size
+
+<Note>
+The avatar seed uses the username, ensuring each user has a unique but consistent avatar across sessions.
+</Note>
+
+## Loading States
+
+The user directory provides visual feedback during data loading:
+
+### Skeleton Loading
+
+While fetching users, animated skeleton rows display:
+
+```jsx
+// Source: UsersPage.jsx:136-144
+{loading ? (
+  Array(5).fill(0).map((_, i) => (
+    <tr key={i} className="animate-pulse">
+      <td className="p-6"><div className="h-10 bg-muted/10 rounded-xl w-full" /></td>
+      <td className="p-6"><div className="h-10 bg-muted/10 rounded-xl w-full" /></td>
+      <td className="p-6"><div className="h-10 bg-muted/10 rounded-xl w-full" /></td>
+      <td className="p-6 text-right"><div className="h-10 bg-muted/10 rounded-xl w-24 ml-auto" /></td>
+    </tr>
+  ))
+)}
+```
+
+This creates 5 pulsing placeholder rows matching the page size.
+
+### Refresh Control
+
+The **"Actualizar"** button in the header allows manual data refresh:
+
+- **Icon**: RefreshCw that spins during loading
+- **Text**: "Actualizar" 
+- **State**: Disabled during loading to prevent duplicate requests
+- **Styling**: Secondary variant button with obsidian text
+
+```jsx
+// Source: UsersPage.jsx:115-120
+<Button variant="secondary" onClick={fetchUsers} disabled={loading}>
+  <RefreshCw size={16} className={cn("text-obsidian", loading && "animate-spin")} />
+  <span className="text-obsidian font-bold">Actualizar</span>
+</Button>
+```
+
+## Error Handling
+
+The Users page implements error handling that propagates to parent components:
+
+```jsx
+// Source: UsersPage.jsx:32-36
+useEffect(() => {
+  if (error && onError) {
+    onError(error.status || 500, error.message || "Falla de Auditoría");
+  }
+}, [error, onError]);
+```
+
+Errors trigger the `onError` callback with:
+- **Status Code**: HTTP error code (default 500)
+- **Message**: Error description (default "Falla de Auditoría")
+
+<Note type="warning">
+Network errors during user fetching or audit operations will display appropriate error messages to maintain system transparency.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Project Management" icon="folder-open" href="/features/project-management">
+    Learn how to assign users to projects and manage access
+  </Card>
+  
+  <Card title="Dashboard Overview" icon="gauge" href="/features/dashboard">
+    Return to the main dashboard to monitor overall system metrics
+  </Card>
+</CardGroup>

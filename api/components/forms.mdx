@@ -1,0 +1,487 @@
+---
+title: 'Forms'
+description: 'TextField, Select, and Button components for building forms'
+icon: 'input-text'
+---
+
+## TextField
+
+A styled text input component with label, error handling, and validation.
+
+### Import
+
+```jsx
+import { TextField } from '../components/TextField';
+```
+
+### Props
+
+<ParamField path="label" type="string">
+  Label text displayed above the input field
+</ParamField>
+
+<ParamField path="value" type="string" required>
+  Current value of the input (controlled component)
+</ParamField>
+
+<ParamField path="onChange" type="function" required>
+  Callback when input value changes
+  
+  ```typescript
+  (value: string) => void
+  ```
+</ParamField>
+
+<ParamField path="placeholder" type="string">
+  Placeholder text shown when input is empty
+</ParamField>
+
+<ParamField path="error" type="string">
+  Error message to display below the input. When present, input shows error styling.
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes for the container div
+</ParamField>
+
+<ParamField path="type" type="string" default="text">
+  HTML input type (e.g., `"text"`, `"password"`, `"email"`, `"number"`)
+</ParamField>
+
+### Features
+
+- **Auto-generated ID**: Creates accessible `id` from label text
+- **Error States**: Red border and background when error is present
+- **Focus Ring**: Primary color ring on focus
+- **Smooth Transitions**: All states animate smoothly
+- **Error Animation**: Error message slides in from top
+
+### Usage Examples
+
+<Tabs>
+  <Tab title="Basic Input">
+    ```jsx
+    // src/pages/DashboardPage.jsx:58-63
+    <TextField
+      label="Correo Institucional"
+      value={email}
+      onChange={setEmail}
+      placeholder="usuario@apm-enterprise.com"
+    />
+    ```
+  </Tab>
+  <Tab title="Password Input">
+    ```jsx
+    // src/pages/DashboardPage.jsx:64-69
+    <TextField
+      label="Clave de Auditoría"
+      type="password"
+      value={password}
+      onChange={setPassword}
+      placeholder="••••••••"
+    />
+    ```
+  </Tab>
+  <Tab title="With Error">
+    ```jsx
+    // src/pages/ProjectsPage.jsx:282-288
+    <TextField
+      label="Nombre del Proyecto"
+      value={name}
+      onChange={setName}
+      error={nameErr}
+      placeholder="Ej: Portal RV4"
+    />
+    ```
+  </Tab>
+  <Tab title="Number Input">
+    ```jsx
+    // src/pages/ProjectsPage.jsx:296-302
+    <TextField
+      label="Presupuesto"
+      value={budget}
+      onChange={setBudget}
+      error={budgetErr}
+      placeholder="0.00"
+      type="number"
+    />
+    ```
+  </Tab>
+</Tabs>
+
+### Validation Example
+
+```jsx
+function ProjectForm() {
+  const [name, setName] = useState('');
+  const [nameError, setNameError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!name.trim()) {
+      setNameError('El nombre del proyecto es requerido');
+      return;
+    }
+    if (name.length < 3) {
+      setNameError('El nombre debe tener al menos 3 caracteres');
+      return;
+    }
+    
+    setNameError('');
+    // Submit form...
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <TextField
+        label="Nombre del Proyecto"
+        value={name}
+        onChange={setName}
+        error={nameError}
+        placeholder="Ej: Rediseño APM"
+      />
+    </form>
+  );
+}
+```
+
+---
+
+## Select
+
+A custom dropdown select component with smooth animations and keyboard support.
+
+### Import
+
+```jsx
+import { Select } from '../components/Select';
+```
+
+### Props
+
+<ParamField path="value" type="string" required>
+  Currently selected option value
+</ParamField>
+
+<ParamField path="onChange" type="function" required>
+  Callback when selection changes
+  
+  ```typescript
+  (value: string) => void
+  ```
+</ParamField>
+
+<ParamField path="options" type="array" required>
+  Array of option objects
+  
+  ```typescript
+  Array<{
+    value: string;  // Option value
+    label: string;  // Display text
+  }>
+  ```
+</ParamField>
+
+<ParamField path="label" type="string">
+  Label text displayed above the select (uppercase, small)
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes for the container
+</ParamField>
+
+### Features
+
+- **Click Outside Detection**: Automatically closes when clicking outside
+- **Selected State**: Highlights current selection with primary color
+- **Animated Dropdown**: Smooth fade and zoom animation
+- **Chevron Rotation**: Icon rotates 180° when open
+- **Hover States**: Options highlight on hover
+
+### Usage Examples
+
+<Tabs>
+  <Tab title="Status Filter">
+    ```jsx
+    // src/pages/DashboardPage.jsx:142-150
+    <Select
+      value={statusFilter}
+      onChange={setStatusFilter}
+      options={[
+        { value: "all", label: "Todos" },
+        { value: "active", label: "Activo" },
+        { value: "paused", label: "Pausado" },
+      ]}
+      className="w-40"
+    />
+    ```
+  </Tab>
+  <Tab title="With Label">
+    ```jsx
+    // src/pages/DashboardPage.jsx:224-232
+    <Select
+      label="Estado"
+      value={status}
+      onChange={setStatus}
+      options={[
+        { value: "active", label: "Activo" },
+        { value: "paused", label: "Pausado" },
+      ]}
+    />
+    ```
+  </Tab>
+  <Tab title="Page Filter">
+    ```jsx
+    // src/pages/ProjectsPage.jsx:198-206
+    <Select
+      value={statusFilter}
+      onChange={(val) => {
+        setStatusFilter(val);
+        setPage(1); // Reset pagination
+      }}
+      options={[
+        { value: "all", label: "Todo" },
+        { value: "active", label: "Activos" },
+        { value: "paused", label: "En Pausa" },
+      ]}
+      className="w-36"
+    />
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Button
+
+A versatile button component with multiple variants and sizes.
+
+### Import
+
+```jsx
+import { Button } from '../components/Button';
+```
+
+### Props
+
+<ParamField path="children" type="React.ReactNode" required>
+  Button label or content
+</ParamField>
+
+<ParamField path="variant" type="string" default="primary">
+  Visual style variant:
+  - `"primary"` - Primary brand color
+  - `"secondary"` - White with border
+  - `"outline"` - Transparent with border
+  - `"ghost"` - Transparent, minimal
+  - `"danger"` - Red color for destructive actions
+</ParamField>
+
+<ParamField path="size" type="string" default="md">
+  Button size:
+  - `"sm"` - Small (px-3 py-1.5, text-xs)
+  - `"md"` - Medium (px-5 py-2.5, text-sm)
+  - `"lg"` - Large (px-7 py-3.5, text-base)
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes
+</ParamField>
+
+<ParamField path="icon" type="React.ReactNode">
+  Icon element to display before the label
+</ParamField>
+
+<ParamField path="disabled" type="boolean">
+  Disables the button (reduces opacity, removes pointer events)
+</ParamField>
+
+### Variant Styles
+
+<Tabs>
+  <Tab title="primary">
+    ```jsx
+    <Button variant="primary">
+      Submit Form
+    </Button>
+    ```
+    - Background: Primary brand color
+    - Text: White
+    - Shadow: Large with primary tint
+  </Tab>
+  <Tab title="secondary">
+    ```jsx
+    <Button variant="secondary">
+      Cancel
+    </Button>
+    ```
+    - Background: White
+    - Text: Obsidian (dark)
+    - Border: Muted
+  </Tab>
+  <Tab title="outline">
+    ```jsx
+    <Button variant="outline">
+      Edit
+    </Button>
+    ```
+    - Background: Transparent
+    - Border: 2px primary color
+    - Text: Primary color
+  </Tab>
+  <Tab title="ghost">
+    ```jsx
+    <Button variant="ghost">
+      Learn More
+    </Button>
+    ```
+    - Background: Transparent
+    - Text: Muted
+    - Minimal styling
+  </Tab>
+  <Tab title="danger">
+    ```jsx
+    <Button variant="danger">
+      Delete
+    </Button>
+    ```
+    - Background: Red-500
+    - Text: White
+    - Shadow: Red tint
+  </Tab>
+</Tabs>
+
+### Usage Examples
+
+<Tabs>
+  <Tab title="Primary Submit">
+    ```jsx
+    // src/pages/DashboardPage.jsx:71-73
+    <Button type="submit" className="w-full tracking-widest py-3 mt-4">
+      Iniciar Protocolo
+    </Button>
+    ```
+  </Tab>
+  <Tab title="With Icon">
+    ```jsx
+    // src/pages/DashboardPage.jsx:100-108
+    <Button variant="secondary" onClick={handleRefresh} disabled={loading}>
+      <div className="flex items-center gap-2">
+        <RefreshCw size={16} className={cn("text-obsidian", loading && "animate-spin")} />
+        <span className="text-obsidian font-bold">Actualizar</span>
+      </div>
+    </Button>
+    ```
+  </Tab>
+  <Tab title="Small Outline">
+    ```jsx
+    // src/pages/ProjectsPage.jsx:258-260
+    <Button variant="outline" size="sm" onClick={() => editProject(proj)}>
+      Editar
+    </Button>
+    ```
+  </Tab>
+  <Tab title="Full Width">
+    ```jsx
+    // src/pages/ProjectsPage.jsx:320-322
+    <Button disabled={saving} className="min-w-[200px] py-4 rounded-full">
+      {saving ? "Procesando..." : "Generar Proyecto"}
+    </Button>
+    ```
+  </Tab>
+  <Tab title="Ghost Cancel">
+    ```jsx
+    // src/pages/DashboardPage.jsx:212-214
+    <Button 
+      variant="ghost" 
+      size="sm" 
+      onClick={cancelEdit}
+      className="text-[10px] uppercase"
+    >
+      Cancelar Edición
+    </Button>
+    ```
+  </Tab>
+</Tabs>
+
+### Form Integration
+
+```jsx
+// Complete form example
+// src/pages/DashboardPage.jsx:217-244
+function ProjectForm({ onSubmit, saving }) {
+  const [name, setName] = useState('');
+  const [owner, setOwner] = useState('');
+  const [budget, setBudget] = useState('');
+  const [status, setStatus] = useState('active');
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <TextField 
+          label="Nombre del Proyecto" 
+          value={name} 
+          onChange={setName}
+          placeholder="Ej: Rediseño APM"
+        />
+        <TextField 
+          label="Responsable" 
+          value={owner} 
+          onChange={setOwner}
+          placeholder="Ej: Arq. Carlos"
+        />
+      </div>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <TextField 
+          label="Presupuesto Inicial (PEN)" 
+          value={budget} 
+          onChange={setBudget}
+          placeholder="0"
+        />
+        <Select
+          label="Estado"
+          value={status}
+          onChange={setStatus}
+          options={[
+            { value: "active", label: "Activo" },
+            { value: "paused", label: "Pausado" },
+          ]}
+        />
+      </div>
+      <div className="flex justify-end">
+        <Button 
+          disabled={saving} 
+          className="min-w-[200px] py-4 rounded-full"
+        >
+          {saving ? "Procesando..." : "Generar Proyecto"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+```
+
+## Best Practices
+
+<Tabs>
+  <Tab title="Validation">
+    - Always validate on submit, not just onChange
+    - Clear errors when user starts typing
+    - Show specific error messages
+    - Use `error` prop for field-level errors
+  </Tab>
+  <Tab title="Accessibility">
+    - TextField auto-generates accessible IDs
+    - Always provide labels for screen readers
+    - Use proper input types (`type="email"`, `type="password"`)
+    - Disable buttons during loading states
+  </Tab>
+  <Tab title="Loading States">
+    - Disable buttons when `saving` is true
+    - Show loading text: `{saving ? "Procesando..." : "Submit"}`
+    - Add spinner icon for visual feedback
+    - Prevent multiple submissions
+  </Tab>
+</Tabs>

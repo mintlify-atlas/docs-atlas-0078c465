@@ -1,0 +1,427 @@
+---
+title: 'Project Management'
+description: 'Create, edit, and manage projects with budget tracking and status controls'
+icon: 'folder-open'
+---
+
+# Project Management
+
+APM Enterprise provides comprehensive project management capabilities, allowing you to create, edit, monitor, and organize engineering projects with full budget tracking and status management.
+
+## Creating a New Project
+
+Projects can be created directly from the Dashboard or the dedicated Projects page using the **"Nuevo Registro de Proyecto"** (New Project Registration) form.
+
+<Steps>
+  <Step title="Locate the Project Form">
+    The project creation form is prominently displayed with:
+    - Light primary-colored background with dashed border
+    - Plus icon (+) next to the heading
+    - Heading: "Nuevo Registro de Proyecto"
+    
+    The form appears at the bottom of both the Dashboard and Projects page.
+  </Step>
+  
+  <Step title="Fill in Project Details">
+    Complete all required fields in the form:
+    
+    <Tabs>
+      <Tab title="Basic Information">
+        **Nombre del Proyecto** (Project Name)
+        - Required field
+        - Example: "Rediseño APM", "Portal RV4"
+        - Validation: Cannot be empty
+        
+        **Responsable / Líder** (Owner / Leader)
+        - Required field
+        - Example: "Arq. Carlos", "Backend Team"
+        - Validation: Cannot be empty
+      </Tab>
+      
+      <Tab title="Budget & Status">
+        **Presupuesto Inicial (PEN)** (Initial Budget)
+        - Required field
+        - Format: Numeric value in Peruvian Soles
+        - Example: "50000", "125000.50"
+        - Type: Number input
+        - Validation: Must be a valid number
+        
+        **Estado** (Status)
+        - Required field
+        - Options:
+          - **Activo** (Active): Project is currently running
+          - **Pausado** (Paused): Project is on hold
+        - Default: Usually "Activo"
+      </Tab>
+    </Tabs>
+    
+    ```jsx
+    // Source: ProjectsPage.jsx:281-314
+    <form onSubmit={form.onAction}>
+      <TextField
+        label="Nombre del Proyecto"
+        value={form.name}
+        onChange={form.setName}
+        error={form.nameErr}
+        placeholder="Ej: Portal RV4"
+      />
+      <TextField
+        label="Líder / Dueño"
+        value={form.owner}
+        onChange={form.setOwner}
+        error={form.ownerErr}
+        placeholder="Ej: Backend Team"
+      />
+      <TextField
+        label="Presupuesto"
+        value={form.budget}
+        onChange={form.setBudget}
+        error={form.budgetErr}
+        placeholder="0.00"
+        type="number"
+      />
+      <Select
+        value={form.status}
+        onChange={form.setStatus}
+        options={[
+          { value: "active", label: "Activo" },
+          { value: "paused", label: "En Pausa" },
+        ]}
+      />
+    </form>
+    ```
+  </Step>
+  
+  <Step title="Submit the Form">
+    Click the **"Generar Proyecto"** (Generate Project) button to create the project.
+    
+    - Button displays "Procesando..." while saving
+    - On success, the project appears in the list immediately
+    - Form errors display in a red badge above the submit button
+  </Step>
+</Steps>
+
+<Note type="info">
+The project form uses real-time validation. Field-specific errors appear below each input, while general form errors appear in a red animated badge.
+</Note>
+
+## Editing Existing Projects
+
+You can modify project details at any time through the edit functionality.
+
+### From the Dashboard
+
+<Steps>
+  <Step title="Select a Project">
+    Click on any project in the "Listado de Proyectos" to view its details in the right sidebar.
+  </Step>
+  
+  <Step title="Open Edit Mode">
+    Click the **"Editar"** button in the project details panel.
+    
+    ```jsx
+    // Source: DashboardPage.jsx:258-260
+    <Button variant="outline" size="sm" onClick={() => form.prepareEdit(dash.selected)}>
+      Editar
+    </Button>
+    ```
+  </Step>
+  
+  <Step title="Modify and Save">
+    The project form will populate with existing values. Make your changes and click **"Guardar Cambios"** (Save Changes).
+    
+    You can cancel editing by clicking **"Cancelar Edición"** (Cancel Edit) which appears when in edit mode.
+  </Step>
+</Steps>
+
+### From the Projects Page
+
+<Steps>
+  <Step title="Locate the Project">
+    Browse the project list or use pagination to find the project you want to edit.
+  </Step>
+  
+  <Step title="Click Edit Button">
+    Each project row has an **"Editar"** button. Click it to load the project into the edit form.
+    
+    ```jsx
+    // Source: ProjectsPage.jsx:238-241
+    onEdit={(proj) => {
+      setSelectedProject(null);
+      form.prepareEdit(proj);
+    }}
+    ```
+  </Step>
+  
+  <Step title="Update and Submit">
+    The form heading changes to **"Editar Proyecto"** and the submit button becomes **"Guardar Cambios"**.
+  </Step>
+</Steps>
+
+<Note type="warning">
+When editing a project, the form heading and button text change to indicate edit mode. A "Cancelar Edición" button appears allowing you to exit edit mode without saving.
+</Note>
+
+## Project List Features
+
+The Projects page (`/projects`) provides an advanced view of all projects with additional features:
+
+### List View Components
+
+<CardGroup cols={2}>
+  <Card title="Status Filtering" icon="filter">
+    Filter projects by their operational status:
+    - **Todo** (All): Display all projects
+    - **Activos** (Active): Show only active projects
+    - **En Pausa** (Paused): Show only paused projects
+    
+    The filter automatically resets pagination to page 1.
+  </Card>
+  
+  <Card title="Pagination" icon="chevrons-right">
+    Navigate through projects with pagination controls:
+    - **Page Size**: 5 projects per page
+    - **Navigation**: Left/Right chevron buttons
+    - **Page Indicator**: "Página X de Y" display
+    - Buttons disable at first/last page
+  </Card>
+</CardGroup>
+
+```jsx
+// Source: ProjectsPage.jsx:87-93
+const pageSize = 5;
+const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+// Pagination UI (ProjectsPage.jsx:245-264)
+<div className="p-6 border-t border-muted/10 flex items-center justify-between">
+  <p>Página {page} de {totalPages}</p>
+  <div className="flex gap-2">
+    <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+      <ChevronLeft size={18} />
+    </button>
+    <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+      <ChevronRight size={18} />
+    </button>
+  </div>
+</div>
+```
+
+### Refresh Functionality
+
+The Projects page includes a dedicated **"Actualizar"** (Update) button in the header:
+
+- Reloads all project data from the server
+- Shows spinning icon while loading
+- Button text changes to "Cargando..." during refresh
+- Disabled during loading to prevent duplicate requests
+
+```jsx
+// Source: ProjectsPage.jsx:208-215
+<button onClick={loadData} disabled={loading}>
+  <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+  {loading ? "Cargando..." : "Actualizar"}
+</button>
+```
+
+## Project Detail View
+
+Clicking a project in the list navigates to a detailed view showing comprehensive project information.
+
+### Detail Page Layout
+
+<Tabs>
+  <Tab title="Sidebar Card">
+    The left sidebar displays a visual project card:
+    
+    - **Project Initial**: Large letter avatar with project's first character
+    - **Project Name**: Large, bold heading
+    - **Owner Name**: Displayed in primary color with uppercase styling
+    - **Budget**: Formatted with currency icon
+    - **Responsible Person**: Listed with user icon
+    - **Status Badge**: Color-coded (green for active, yellow for paused)
+    - **Edit Button**: Opens form to modify the project
+    
+    ```jsx
+    // Source: ProjectsPage.jsx:106-137
+    <Card variant="glass" className="sticky top-28">
+      <div className="mx-auto h-24 w-24 rounded-[2rem] bg-primary/10">
+        {selectedProject.name.charAt(0)}
+      </div>
+      <h2>{selectedProject.name}</h2>
+      <p>{selectedProject.owner}</p>
+      <div className="pt-4 border-t space-y-3">
+        <div><DollarSign /> Presupuesto: {money(selectedProject.budget)}</div>
+        <div><User /> Responsable: {selectedProject.owner}</div>
+        <div>Estado: <Badge>{status}</Badge></div>
+      </div>
+      <button onClick={() => form.prepareEdit(selectedProject)}>Editar Proyecto</button>
+    </Card>
+    ```
+  </Tab>
+  
+  <Tab title="Project Information">
+    The main content area shows a detailed **"Ficha del Proyecto"** (Project File) with:
+    
+    - **ID**: Unique project identifier in monospace font
+    - **Nombre**: Full project name
+    - **Líder**: Project leader/owner
+    - **Presupuesto**: Budget in primary color emphasis
+    - **Estado**: Current status with badge
+    
+    Each field is formatted as a label-value pair with clean borders.
+    
+    ```jsx
+    // Source: ProjectsPage.jsx:141-169
+    <Card className="p-8">
+      <h3><Briefcase /> Ficha del Proyecto</h3>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between border-b py-3">
+          <span>ID</span>
+          <span className="font-mono">{selectedProject.id}</span>
+        </div>
+        <div className="flex items-center justify-between border-b py-3">
+          <span>Nombre</span>
+          <span>{selectedProject.name}</span>
+        </div>
+        {/* Additional fields... */}
+      </div>
+    </Card>
+    ```
+  </Tab>
+  
+  <Tab title="Information Banner">
+    A bottom banner displays system information:
+    
+    - **Icon**: Briefcase icon in primary color
+    - **Title**: "Gestión de Recursos APM" (APM Resource Management)
+    - **Description**: "Proyecto auditado bajo estándar Enterprise APM v5"
+    - **Styling**: Primary background with light tint
+    
+    This confirms the project is managed under APM Enterprise standards.
+  </Tab>
+</Tabs>
+
+### Navigation
+
+Return to the project list by clicking the **"Volver al Listado"** (Return to List) button with a left arrow icon.
+
+```jsx
+// Source: ProjectsPage.jsx:98-103
+<button onClick={() => setSelectedProject(null)}>
+  <ArrowLeft size={16} /> Volver al Listado
+</button>
+```
+
+## Status Management
+
+Projects in APM Enterprise operate under two status states:
+
+### Active Status (Activo)
+
+- **Indicator**: Green badge with green dot
+- **Background**: Light green (`#dcfce7`)
+- **Text Color**: Green (`#16a34a`)
+- **Meaning**: Project is currently active and running
+- **Dashboard Display**: Shows as "Activo"
+
+### Paused Status (Pausado)
+
+- **Indicator**: Yellow/amber badge with amber dot
+- **Background**: Light yellow (`#FFE88C/50`)
+- **Text Color**: Amber (`#CA732D`)
+- **Meaning**: Project is temporarily paused or on hold
+- **Dashboard Display**: Shows as "Pausado" or "En Pausa"
+
+```jsx
+// Source: DashboardPage.jsx:187-194
+<Badge className={
+  p.status === "active"
+    ? "bg-[#dcfce7] text-[#16a34a] border-transparent"
+    : "bg-[#FFE88C]/50 text-[#CA732D] border-[#FFE88C]"
+}>
+  <span className={`h-1.5 w-1.5 rounded-full ${
+    p.status === "active" ? "bg-[#16a34a]" : "bg-[#CA732D]"
+  }`} />
+  {p.status === "active" ? "Activo" : "Pausado"}
+</Badge>
+```
+
+## Budget Tracking
+
+Each project tracks its allocated budget in Peruvian Soles (PEN).
+
+### Budget Display
+
+- **Format**: Currency format with two decimal places
+- **Example**: "S/ 50,000.00", "S/ 125,500.50"
+- **Color**: Primary brand color for emphasis
+- **Font Weight**: Black (extra bold) for prominence
+
+### Budget Utility
+
+```jsx
+// Source: DashboardPage.jsx:23 (import)
+import { money } from "../utils/formatters";
+
+// Usage: DashboardPage.jsx:267
+<DetailItem label="Presupuesto" value={money(dash.selected.budget)} />
+```
+
+The `money()` formatter ensures consistent currency display across the application.
+
+## Error Handling
+
+The Projects page includes comprehensive error handling:
+
+### Network Errors
+
+When data loading fails, a red alert banner displays:
+
+```jsx
+// Source: ProjectsPage.jsx:219-228
+{error && (
+  <div className="p-6 rounded-3xl bg-red-500 text-white">
+    <AlertCircle size={20} />
+    <div>
+      <p>Inconsistencia de Red</p>
+      <p>Código de Respuesta: {error.status || '503'}</p>
+    </div>
+  </div>
+)}
+```
+
+<Note type="warning">
+Error codes include:
+- **401**: Unauthorized session
+- **404**: Project not found
+- **500/503**: Network or server failure ("Falla de auditoría de red")
+</Note>
+
+### Form Validation Errors
+
+Validation errors appear in two forms:
+
+1. **Field-specific errors**: Display below the individual input field
+2. **Form-level errors**: Show in animated red badge above submit button
+
+```jsx
+// Source: ProjectsPage.jsx:315-319
+{form.formErr && (
+  <Badge variant="danger" className="w-full justify-center py-3 rounded-2xl animate-shake">
+    {form.formErr}
+  </Badge>
+)}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="User Management" icon="users" href="/features/user-management">
+    Learn how to manage team members and assign project roles
+  </Card>
+  
+  <Card title="Dashboard Overview" icon="gauge" href="/features/dashboard">
+    Return to dashboard documentation for overall system monitoring
+  </Card>
+</CardGroup>

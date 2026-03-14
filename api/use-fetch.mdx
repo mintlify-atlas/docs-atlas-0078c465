@@ -1,0 +1,238 @@
+---
+title: 'useFetch'
+description: 'Custom hook for managing asynchronous data fetching with loading states, error handling, and request cancellation'
+---
+
+## Overview
+
+The `useFetch` hook is a powerful utility for managing asynchronous data fetching operations in APM Enterprise. It provides automatic request management, loading states, error handling, and supports request cancellation to prevent memory leaks.
+
+## Function Signature
+
+```javascript
+function useFetch(fetchFn, autoExecute = true, deps = [])
+```
+
+## Parameters
+
+<ParamField path="fetchFn" type="function" required>
+  The asynchronous function to execute. This function will be called with any arguments passed to `execute()`.
+  
+  ```javascript
+  const fetchFn = async () => {
+    return await apiGetDashboard({ token });
+  }
+  ```
+</ParamField>
+
+<ParamField path="autoExecute" type="boolean" default="true">
+  Whether to automatically execute the fetch function on mount and when dependencies change.
+  
+  - Set to `true` to auto-fetch data on component mount
+  - Set to `false` to manually control when fetching occurs via `execute()`
+</ParamField>
+
+<ParamField path="deps" type="array" default="[]">
+  Array of dependencies that trigger re-execution when changed (similar to `useEffect` dependencies).
+  
+  ```javascript
+  useFetch(fetchFn, true, [token, userId])
+  ```
+</ParamField>
+
+## Return Values
+
+<ResponseField name="data" type="any">
+  The successfully fetched data. Initially `null` until the first successful fetch.
+</ResponseField>
+
+<ResponseField name="loading" type="boolean">
+  Loading state indicator. `true` while the fetch operation is in progress.
+</ResponseField>
+
+<ResponseField name="error" type="object | null">
+  Error object containing error details if the fetch failed.
+  
+  ```javascript
+  {
+    message: "Error message",
+    status: 404
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="execute" type="function">
+  Function to manually trigger the fetch operation. Returns a promise that resolves with the fetched data.
+  
+  ```javascript
+  const result = await execute(arg1, arg2);
+  ```
+</ResponseField>
+
+<ResponseField name="setData" type="function">
+  Setter function to manually update the data state.
+  
+  ```javascript
+  setData(newData);
+  setData((prev) => ({ ...prev, updated: true }));
+  ```
+</ResponseField>
+
+<ResponseField name="setError" type="function">
+  Setter function to manually update the error state.
+  
+  ```javascript
+  setError({ message: "Custom error", status: 500 });
+  ```
+</ResponseField>
+
+## Features
+
+### Request Cancellation
+
+The hook automatically cancels pending requests when:
+- A new request is initiated
+- The component unmounts
+- Dependencies change
+
+This prevents memory leaks and race conditions.
+
+### API Status Events
+
+The hook listens for `apm:api_status` custom events and will re-execute the fetch when these events are fired (if `autoExecute` is `true`).
+
+## Usage Examples
+
+### Basic Usage
+
+```javascript
+import { useFetch } from "../hooks/useFetch";
+import { apiGetDashboard } from "../services/api";
+
+function DashboardComponent() {
+  const { data, loading, error } = useFetch(
+    () => apiGetDashboard({ token: "demo-token" }),
+    true,
+    []
+  );
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  
+  return <div>{data?.stats?.revenue}</div>;
+}
+```
+
+### Manual Fetch Control
+
+```javascript
+function SearchComponent() {
+  const [query, setQuery] = useState("");
+  
+  const { data, loading, execute } = useFetch(
+    (searchTerm) => apiSearch({ q: searchTerm }),
+    false, // Don't auto-execute
+    []
+  );
+
+  const handleSearch = () => {
+    execute(query);
+  };
+
+  return (
+    <div>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      <button onClick={handleSearch}>Search</button>
+      {loading && <p>Searching...</p>}
+      {data && <ResultsList items={data} />}
+    </div>
+  );
+}
+```
+
+### With Dependencies
+
+```javascript
+function UserProfile({ userId }) {
+  const { data, loading, error, setData } = useFetch(
+    () => apiGetUser({ id: userId }),
+    true,
+    [userId] // Re-fetch when userId changes
+  );
+
+  const updateUser = (updates) => {
+    setData((prev) => ({ ...prev, ...updates }));
+  };
+
+  return (
+    <div>
+      {loading ? (
+        <Spinner />
+      ) : (
+        <UserCard user={data} onUpdate={updateUser} />
+      )}
+    </div>
+  );
+}
+```
+
+### Real-World Example from useDashboard
+
+```javascript
+import { useFetch } from "./useFetch";
+import { apiGetDashboard } from "../services/api";
+
+export function useDashboard() {
+  const [token, setToken] = useState("demo-token");
+
+  const {
+    data,
+    loading,
+    error: err,
+    execute: load,
+    setData,
+    setError: setErr
+  } = useFetch(
+    () => apiGetDashboard({ token }),
+    !!token, // Only auto-execute if token exists
+    [token]  // Re-fetch when token changes
+  );
+
+  return {
+    data,
+    loading,
+    err,
+    load,
+    setData,
+    setErr
+  };
+}
+```
+
+## Error Handling
+
+The hook automatically catches errors and sets the error state:
+
+```javascript
+const { data, error } = useFetch(fetchFn);
+
+if (error) {
+  console.log(`Error ${error.status}: ${error.message}`);
+}
+```
+
+Abort errors (from cancelled requests) are silently ignored to prevent unnecessary error states during navigation or rapid re-fetching.
+
+## Best Practices
+
+<Tip>
+  Always include all external dependencies in the `deps` array to ensure data stays synchronized with your component state.
+</Tip>
+
+<Warning>
+  Avoid creating new function references on every render for `fetchFn`. Use `useCallback` or define functions outside the component to prevent infinite re-renders.
+</Warning>
+
+<Tip>
+  Set `autoExecute` to `false` for user-triggered actions like form submissions or search queries.
+</Tip>

@@ -1,0 +1,353 @@
+---
+title: 'Modals'
+description: 'ErrorModal component for displaying API error notifications'
+icon: 'message-square-warning'
+---
+
+## ErrorModal
+
+A notification modal component that displays API errors and status messages with color-coded styling based on HTTP status codes.
+
+## Import
+
+```jsx
+import { ErrorModal } from '../components/ErrorModal';
+```
+
+## Props
+
+<ParamField path="isOpen" type="boolean" required>
+  Controls modal visibility. When `true`, the modal is displayed.
+</ParamField>
+
+<ParamField path="onClose" type="function" required>
+  Callback function when modal is closed
+  
+  ```typescript
+  () => void
+  ```
+</ParamField>
+
+<ParamField path="errorCode" type="number" required>
+  HTTP status code that determines the modal's visual style and message
+  
+  Supported codes:
+  - `200` - Success (auto-closes after 2.5s)
+  - `401` - Unauthorized
+  - `404` - Not Found
+  - `500` - Server Error
+  - Others - Default warning style
+</ParamField>
+
+<ParamField path="message" type="string" required>
+  Error or status message to display
+</ParamField>
+
+## Error Code Styling
+
+The modal automatically styles itself based on the `errorCode` prop:
+
+<Tabs>
+  <Tab title="200 - Success">
+    ```jsx
+    <ErrorModal
+      isOpen={true}
+      onClose={handleClose}
+      errorCode={200}
+      message="Protocolo Restablecido"
+    />
+    ```
+    
+    **Styling:**
+    - Background: `bg-emerald-500`
+    - Border: `border-emerald-600`
+    - Icon: `CheckCircle2` (white)
+    - Label: "Protocolo Restablecido"
+    - **Auto-closes** after 2.5 seconds
+    - Shows progress bar animation
+  </Tab>
+  
+  <Tab title="401 - Unauthorized">
+    ```jsx
+    <ErrorModal
+      isOpen={true}
+      onClose={handleClose}
+      errorCode={401}
+      message="Sesión no autorizada"
+    />
+    ```
+    
+    **Styling:**
+    - Background: `bg-violet-600`
+    - Border: `border-violet-700`
+    - Icon: `ShieldAlert` (white)
+    - Label: "Acceso no Autorizado"
+  </Tab>
+  
+  <Tab title="404 - Not Found">
+    ```jsx
+    <ErrorModal
+      isOpen={true}
+      onClose={handleClose}
+      errorCode={404}
+      message="Proyecto no encontrado"
+    />
+    ```
+    
+    **Styling:**
+    - Background: `bg-blue-600`
+    - Border: `border-blue-700`
+    - Icon: `Info` (white)
+    - Label: "Recurso no Encontrado"
+  </Tab>
+  
+  <Tab title="500 - Server Error">
+    ```jsx
+    <ErrorModal
+      isOpen={true}
+      onClose={handleClose}
+      errorCode={500}
+      message="Error crítico del servidor"
+    />
+    ```
+    
+    **Styling:**
+    - Background: `bg-red-600`
+    - Border: `border-red-700`
+    - Icon: `ShieldAlert` (white)
+    - Label: "Falla Crítica del Sistema"
+  </Tab>
+  
+  <Tab title="Default">
+    ```jsx
+    <ErrorModal
+      isOpen={true}
+      onClose={handleClose}
+      errorCode={503}
+      message="Servicio temporalmente no disponible"
+    />
+    ```
+    
+    **Styling:**
+    - Background: `bg-amber-500`
+    - Border: `border-amber-600`
+    - Icon: `Activity` (white)
+    - Label: "Aviso de Auditoría"
+  </Tab>
+</Tabs>
+
+## Features
+
+### Auto-Close Behavior
+
+When `errorCode` is `200` or falsy, the modal automatically closes after 2.5 seconds:
+
+```jsx
+// src/components/ErrorModal.jsx:13-20
+useEffect(() => {
+  if (isOpen && (errorCode === 200 || !errorCode)) {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 2500);
+    return () => clearTimeout(timer);
+  }
+}, [isOpen, errorCode, onClose]);
+```
+
+### Progress Bar
+
+Success messages (200) show an animated progress bar:
+
+```jsx
+{isSuccess && (
+  <div className="mt-4 h-1 w-full bg-black/10 rounded-full overflow-hidden">
+    <div className="h-full bg-white animate-progress-shrink" />
+  </div>
+)}
+```
+
+The bar shrinks from 100% to 0% over 2.5 seconds.
+
+### Position & Animation
+
+The modal appears in the bottom-right corner with smooth animations:
+
+- Position: `fixed bottom-8 right-8`
+- Entry: Slides in from right with fade
+- Min width: `300px`
+- Max width: `sm` (384px)
+
+## Usage Example
+
+### With Error Handling Hook
+
+```jsx
+import { ErrorModal } from '../components/ErrorModal';
+import { useState } from 'react';
+
+function App() {
+  const [error, setError] = useState(null);
+
+  const handleApiError = async () => {
+    try {
+      await api.fetchData();
+      setError({ code: 200, message: "Datos cargados exitosamente" });
+    } catch (err) {
+      setError({
+        code: err.status || 500,
+        message: err.message || "Error inesperado"
+      });
+    }
+  };
+
+  return (
+    <>
+      <button onClick={handleApiError}>Cargar Datos</button>
+      
+      <ErrorModal
+        isOpen={error !== null}
+        onClose={() => setError(null)}
+        errorCode={error?.code}
+        message={error?.message}
+      />
+    </>
+  );
+}
+```
+
+### Integration with API Service
+
+```jsx
+// In a component that uses httpClient
+import { httpClient } from '../services/httpClient';
+import { ErrorModal } from '../components/ErrorModal';
+
+function ProjectsPage() {
+  const [apiError, setApiError] = useState(null);
+
+  const loadProjects = async () => {
+    try {
+      const data = await httpClient.get('/projects');
+      setApiError({ code: 200, message: "Proyectos cargados" });
+      return data;
+    } catch (err) {
+      const message = 
+        err.status === 404 ? "Proyectos no encontrados" :
+        err.status === 401 ? "Sesión no autorizada" :
+        err.message || "Falla de red";
+      
+      setApiError({ code: err.status || 500, message });
+    }
+  };
+
+  return (
+    <div>
+      {/* Page content */}
+      
+      <ErrorModal
+        isOpen={!!apiError}
+        onClose={() => setApiError(null)}
+        errorCode={apiError?.code}
+        message={apiError?.message}
+      />
+    </div>
+  );
+}
+```
+
+### With Error Simulation Panel
+
+The Layout component includes an error simulation panel for testing:
+
+```jsx
+// src/components/Layout.jsx:92-124
+<div className="mt-4 space-y-2">
+  <div className="grid grid-cols-3 gap-2">
+    <button
+      onClick={() => window.setSimulatedError(500)}
+      className="flex flex-col items-center justify-center gap-2 rounded-lg bg-red-500/10 py-2"
+    >
+      <ShieldAlert size={14} /> 500
+    </button>
+    <button
+      onClick={() => window.setSimulatedError(401)}
+      className="flex flex-col items-center justify-center gap-2 rounded-lg bg-violet-500/10 py-2"
+    >
+      <ShieldAlert size={14} /> 401
+    </button>
+    <button
+      onClick={() => window.setSimulatedError(404)}
+      className="flex flex-col items-center justify-center gap-2 rounded-lg bg-blue-500/10 py-2"
+    >
+      <Info size={14} /> 404
+    </button>
+  </div>
+  <button
+    onClick={() => window.setSimulatedError(null)}
+    className="w-full rounded-lg bg-emerald-500/20 py-2"
+  >
+    Restaurar (200)
+  </button>
+</div>
+```
+
+## Visual Structure
+
+```
+┌─────────────────────────────────┐
+│  [Icon]  Error Title        [×] │
+│          Error Message          │
+│  ═══════════════════════════    │ ← Progress bar (200 only)
+└─────────────────────────────────┘
+```
+
+## Styling Customization
+
+The modal uses a configuration object for styling:
+
+```jsx
+// src/components/ErrorModal.jsx:26-62
+const config = {
+  500: {
+    color: "text-white",
+    bg: "bg-red-600",
+    border: "border-red-700",
+    icon: <ShieldAlert size={20} className="text-white" />,
+    label: "Falla Crítica del Sistema"
+  },
+  // ... other configurations
+};
+
+const current = config[errorCode] || config.default;
+```
+
+## Best Practices
+
+<Tabs>
+  <Tab title="Error Messages">
+    - Keep messages concise and user-friendly
+    - Use Spanish for consistency with the app
+    - Provide actionable information when possible
+    - Include error codes for debugging
+  </Tab>
+  <Tab title="Status Codes">
+    - Use `200` for success confirmations
+    - Use `401` for authentication issues
+    - Use `404` for missing resources
+    - Use `500` for server errors
+    - Use default for generic warnings
+  </Tab>
+  <Tab title="UX">
+    - Auto-close success messages (200)
+    - Allow manual close for errors
+    - Show progress bar for auto-close
+    - Position in bottom-right to avoid blocking content
+  </Tab>
+</Tabs>
+
+## Animation Details
+
+- **Entry**: `animate-in slide-in-from-right-10 fade-in duration-500`
+- **Progress**: Custom `@keyframes progress-shrink` from 100% to 0%
+- **Hover**: Close button changes opacity and background
+- **Transition**: All color changes use `transition-all duration-300`
